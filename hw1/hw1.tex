@@ -1,0 +1,354 @@
+\documentclass{article}
+
+\usepackage[english]{babel}
+\usepackage[letterpaper,top=2cm,bottom=2cm,left=3cm,right=3cm,marginparwidth=1.75cm]{geometry}
+\setlength{\parindent}{0pt}
+
+\usepackage{amsmath}
+\usepackage{amsthm}
+\usepackage{amssymb}
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage{listings}
+\usepackage[colorlinks=true, allcolors=blue]{hyperref}
+\usepackage{xcolor}
+
+\lstset{
+  basicstyle=\ttfamily\small,
+  numbers=left,
+  numberstyle=\tiny,
+  stepnumber=1,
+  numbersep=8pt,
+  backgroundcolor=\color{gray!10},
+  frame=single,
+  rulecolor=\color{gray!60},
+  tabsize=2,
+  captionpos=b,
+  breaklines=true,
+  breakatwhitespace=true,
+  showstringspaces=false,
+  keywordstyle=\color{blue},
+  commentstyle=\color{green!50!black},
+  stringstyle=\color{orange},
+}
+
+\title{DSC 291: Learning Theory Assignment 1}
+\author{Tongle Shen}
+
+\begin{document}
+\maketitle
+
+\section{Part B: Theory Problem}
+
+\subsection{Problem 1}
+
+\subsubsection{Choice of Grid}
+
+Let
+$$
+m = \left\lceil \frac{1}{\Delta} \right\rceil
+\quad \text{and} \quad
+G = \left\{ \frac{k}{m} : k = 0,1,\dots,m \right\}.
+$$
+Then $G \subseteq [0,1]$ is a finite grid with
+$$
+|G| = m+1 = \left\lceil \frac{1}{\Delta} \right\rceil + 1.
+$$
+
+\subsubsection{Existence of a Consistent Grid Threshold}
+
+We claim that for every $\Delta$-separated threshold-realizable sequence, there exists some
+$\widetilde{\theta} \in G$ such that
+$$
+h_{\widetilde{\theta}}(x_t) = y_t
+\quad \text{for all } t = 1,\dots,T.
+$$
+
+Since the spacing of the grid is $1/m \leq \Delta$, there exists a grid point
+$\widetilde{\theta} \in G$ nearest to $\theta^*$ such that
+$$
+|\widetilde{\theta} - \theta^*| \leq \frac{1}{2m} \leq \frac{\Delta}{2}.
+$$
+
+Now fix any round $t$.
+
+\textbf{Case 1: } If $y_t = +1$, then
+$$
+y_t = h_{\theta^*}(x_t) = \operatorname{sign}(x_t - \theta^*)
+$$
+and the $\Delta$-separation assumption implies
+$$
+x_t \geq \theta^* + \Delta.
+$$
+Hence
+$$
+x_t - \widetilde{\theta}
+\geq (\theta^* + \Delta) - \widetilde{\theta}
+\geq \Delta - |\widetilde{\theta} - \theta^*|
+\geq \frac{\Delta}{2}
+> 0.
+$$
+Therefore,
+$$
+h_{\widetilde{\theta}}(x_t) = \operatorname{sign}(x_t - \widetilde{\theta}) = +1 = y_t.
+$$
+
+\textbf{Case 2: } If $y_t = -1$, then similarly the realizability and separation assumptions imply
+$$
+x_t \leq \theta^* - \Delta.
+$$
+Thus
+$$
+x_t - \widetilde{\theta}
+\leq (\theta^* - \Delta) - \widetilde{\theta}
+\leq -\Delta + |\widetilde{\theta} - \theta^*|
+\leq -\frac{\Delta}{2}
+< 0,
+$$
+so
+$$
+h_{\widetilde{\theta}}(x_t) = \operatorname{sign}(x_t - \widetilde{\theta}) = -1 = y_t.
+$$
+
+Since this holds in both cases, we have shown that one hypothesis in
+$$
+H_G = \{ h_\theta : \theta \in G \}
+$$
+labels the entire sequence correctly.
+
+\subsubsection{Mistake Bound Derivation}
+
+Now run the Halving algorithm on the finite class $H_G$: on each round, predict by the majority
+vote of the currently surviving hypotheses, and after a mistake eliminate all hypotheses that
+predicted incorrectly. Because the sequence is realizable by $h_{\widetilde{\theta}} \in H_G$, the
+Halving theorem implies that the total number of mistakes is at most
+$$
+\log_2 |H_G| = \log_2 |G|
+= \log_2 \left( \left\lceil \frac{1}{\Delta} \right\rceil + 1 \right).
+$$
+
+\subsubsection{Conclusion}
+
+So an explicit online learner is the Halving algorithm over the grid class $H_G$, with:
+
+\begin{itemize}
+\item choice of grid:
+$$
+G = \left\{ \frac{k}{m} : k = 0,1,\dots,m \right\},
+\quad m = \left\lceil \frac{1}{\Delta} \right\rceil;
+$$
+\item size of the grid:
+$$
+|G| = \left\lceil \frac{1}{\Delta} \right\rceil + 1;
+$$
+\item resulting mistake bound:
+$$
+M \leq \log_2 \left( \left\lceil \frac{1}{\Delta} \right\rceil + 1 \right)
+= O(\log(1/\Delta)).
+$$
+\end{itemize}
+
+\subsection{Problem 2}
+
+\subsubsection{Chosen Feature Map}
+
+Take $d=2$ and define
+$$
+\phi(x) = (x,1) \in \mathbb{R}^2.
+$$
+For the true threshold $\theta^*$, define
+$$
+u^* = \frac{(1,-\theta^*)}{\sqrt{1+(\theta^*)^2}}.
+$$
+Then $u^*$ is a unit vector, and for every $x \in [0,1]$,
+$$
+\langle u^*, \phi(x) \rangle
+= \frac{x-\theta^*}{\sqrt{1+(\theta^*)^2}}.
+$$
+Therefore,
+$$
+\operatorname{sign}(\langle u^*, \phi(x) \rangle)
+= \operatorname{sign}(x-\theta^*)
+= h_{\theta^*}(x).
+$$
+So this representation realizes the threshold function as a linear separator in $\mathbb{R}^2$.
+
+\subsubsection{Margin Lower Bound}
+
+Now consider any $\Delta$-separated threshold-realizable example $(x_t,y_t)$. Since
+$$
+y_t = \operatorname{sign}(x_t-\theta^*)
+$$
+and
+$$
+|x_t-\theta^*| \geq \Delta,
+$$
+we have
+$$
+y_t (x_t-\theta^*) = |x_t-\theta^*| \geq \Delta.
+$$
+Hence
+$$
+y_t \langle u^*, \phi(x_t) \rangle
+= \frac{y_t (x_t-\theta^*)}{\sqrt{1+(\theta^*)^2}}
+= \frac{|x_t-\theta^*|}{\sqrt{1+(\theta^*)^2}}
+\geq \frac{\Delta}{\sqrt{1+(\theta^*)^2}}.
+$$
+Since $\theta^* \in [0,1]$, we have
+$$
+1+(\theta^*)^2 \leq 2,
+$$
+so
+$$
+y_t \langle u^*, \phi(x_t) \rangle \geq \frac{\Delta}{\sqrt{2}}.
+$$
+Thus the sequence is linearly separable with margin
+$$
+\gamma \geq \frac{\Delta}{\sqrt{2}}.
+$$
+In particular, we may take
+$$
+c = \frac{1}{\sqrt{2}}.
+$$
+
+\subsubsection{Norm Bound}
+
+For every $x \in [0,1]$,
+$$
+\|\phi(x)\|
+= \sqrt{x^2+1}
+\leq \sqrt{2}.
+$$
+Therefore we may take
+$$
+R = \sqrt{2}.
+$$
+
+\subsubsection{Mistake Bound Derivation}
+
+By the Perceptron theorem, the number of mistakes is at most
+$$
+\frac{R^2}{\gamma^2}.
+$$
+Using
+$$
+R = \sqrt{2}
+\quad \text{and} \quad
+\gamma \geq \frac{\Delta}{\sqrt{2}},
+$$
+we obtain
+$$
+M \leq \frac{(\sqrt{2})^2}{(\Delta/\sqrt{2})^2}
+= \frac{2}{\Delta^2/2}
+= \frac{4}{\Delta^2}.
+$$
+
+\subsubsection{Conclusion}
+
+One valid choice is:
+\begin{itemize}
+\item feature map:
+$$
+\phi(x) = (x,1) \in \mathbb{R}^2;
+$$
+\item unit separator:
+$$
+u^* = \frac{(1,-\theta^*)}{\sqrt{1+(\theta^*)^2}};
+$$
+\item margin lower bound:
+$$
+\gamma \geq \frac{\Delta}{\sqrt{2}};
+$$
+\item norm bound:
+$$
+\|\phi(x)\| \leq \sqrt{2};
+$$
+\item resulting Perceptron mistake bound:
+$$
+M \leq \frac{4}{\Delta^2}
+= O(1/\Delta^2).
+$$
+\end{itemize}
+
+\subsection{Problem 3}
+
+\subsubsection{Why This Does Not Contradict Part 1}
+
+There is no contradiction between the continuous-threshold impossibility phenomenon from lecture
+and the result of Part 1 because the two statements concern different families of sequences.
+
+The impossibility phenomenon from lecture applies to arbitrary threshold-realizable sequences. In
+that setting, examples may appear arbitrarily close to the true threshold $\theta^*$, so the learner
+may need finer and finer resolution to determine which threshold is correct. In particular, the
+continuous class $\{h_\theta : \theta \in [0,1]\}$ cannot be treated as a fixed finite class in the
+worst case.
+
+Part 1 adds the extra assumption of $\Delta$-separation. This changes the problem substantially:
+every example satisfies
+$$
+|x_t-\theta^*| \geq \Delta.
+$$
+Because of this gap around $\theta^*$, two thresholds that are sufficiently close to each other are
+indistinguishable on every admissible example. Equivalently, once we know the threshold up to
+resolution on the order of $\Delta$, we know all labels in the sequence. That is why a grid of size
+$O(1/\Delta)$ is enough in Part 1, and the Halving algorithm can be run on that finite effective
+class.
+
+So the lecture impossibility result rules out a uniform finite-mistake guarantee for the unrestricted
+continuous threshold class, whereas Part 1 proves a finite-mistake guarantee on the smaller class of
+$\Delta$-separated realizable sequences.
+
+\subsubsection{Comparison of the Two Bounds}
+
+The two bounds are
+$$
+M_{\text{Halving}} = O(\log(1/\Delta))
+\quad \text{and} \quad
+M_{\text{Perceptron}} = O(1/\Delta^2).
+$$
+They scale differently because they come from two different kinds of arguments.
+
+\textbf{Part 1: } The Halving argument is combinatorial. After imposing $\Delta$-separation, the
+continuous threshold class can be replaced by a finite grid of size $|G| = O(1/\Delta)$. The
+Halving theorem then gives a mistake bound logarithmic in the number of candidate hypotheses:
+$$
+M \leq \log_2 |G| = O(\log(1/\Delta)).
+$$
+This argument measures how many distinguishable threshold locations remain once the margin gap is
+taken into account.
+
+\textbf{Part 2: } The Perceptron argument is geometric. It does not count hypotheses. Instead, it
+uses the margin bound
+$$
+\gamma = \Omega(\Delta)
+$$
+and the norm bound
+$$
+R = O(1).
+$$
+The Perceptron theorem then yields
+$$
+M \leq \frac{R^2}{\gamma^2} = O(1/\Delta^2).
+$$
+This argument measures how far the examples are from the separating hyperplane in the chosen
+linear representation.
+
+\subsubsection{Interpretation}
+
+The logarithmic bound from Part 1 is sharper for this particular problem because it exploits the
+special one-dimensional threshold structure very directly. Once the threshold is localized to one of
+only $O(1/\Delta)$ relevant positions, the problem is essentially finite.
+
+The Perceptron bound is more general but also looser here. It applies through a generic margin
+analysis for linear separators, and that analysis depends on $1/\gamma^2$. Since the margin is only
+of order $\Delta$, the resulting guarantee is of order $1/\Delta^2$.
+
+\subsubsection{Conclusion}
+
+Part 1 and the lecture impossibility result are compatible because Part 1 assumes an additional
+structural condition, namely $\Delta$-separation. Under that condition, the threshold problem has a
+finite effective resolution and admits a logarithmic Halving bound. The Perceptron analysis gives a
+different guarantee because it measures geometric margin rather than the number of distinguishable
+thresholds, which is why it scales as $O(1/\Delta^2)$ instead of $O(\log(1/\Delta))$.
+
+\end{document}

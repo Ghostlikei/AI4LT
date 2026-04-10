@@ -1,0 +1,165 @@
+\documentclass{article}
+
+\usepackage[english]{babel}
+\usepackage[letterpaper,top=2cm,bottom=2cm,left=3cm,right=3cm]{geometry}
+\usepackage{amsmath,amssymb}
+\setlength{\parindent}{0pt}
+
+\title{DSC 190/291: Learning Theory through Formal Proof and Proof Presentation\\Assignment 1}
+\date{UCSD, Spring 2026}
+
+\begin{document}
+\maketitle
+
+\section{Overview}
+
+This assignment has three technical parts plus an AI usage report:
+\begin{itemize}
+\item Part A: set up your individual repository.
+\item Part B: solve a theory problem from Week 1.
+\item Part C: implement the Perceptron algorithm and verify its mistake bound experimentally.
+\item Part D: write a short report describing how you used AI during the assignment.
+\end{itemize}
+
+\section{Part A: Repository Setup (10 points)}
+
+Create an individual Git repository for this course. This repository will hold all your assignment submissions for the quarter.
+
+\begin{enumerate}
+\item Create a public GitHub repository for this course.
+\item Add a \texttt{README.md} with your name (or alias) and a one-line description.
+\item Set up an AI workflow file in the root of your repository:
+\begin{itemize}
+\item If you use Claude Code, create a \texttt{CLAUDE.md}.
+\item If you use Codex (or another agent), create an \texttt{AGENTS.md}.
+\item You may include both if you use multiple tools.
+\end{itemize}
+\item Create a directory \texttt{hw1/} for this assignment.
+\item Share the repository link with the instructor.
+\end{enumerate}
+
+\section{Part B: Theory Problem (40 points)}
+
+Throughout this part, let
+$$
+X = [0,1], \qquad Y = \{-1,+1\},
+$$
+and define
+$$
+h_\theta(x) = \operatorname{sign}(x-\theta),
+$$
+with the convention that
+$$
+\operatorname{sign}(z) =
+\begin{cases}
++1, & z \ge 0, \\
+-1, & z < 0.
+\end{cases}
+$$
+
+We study the following structural assumption.
+
+\subsection*{$\Delta$-Separated Threshold-Realizable Sequences}
+
+A sequence $\bigl((x_t,y_t)\bigr)_{t=1}^T$ is called $\Delta$-separated threshold-realizable if there exist $\theta^* \in [0,1]$ and $\Delta > 0$ such that, for every round $t$,
+$$
+y_t = h_{\theta^*}(x_t)
+\qquad \text{and} \qquad
+|x_t-\theta^*| \ge \Delta.
+$$
+
+\subsection*{Problem 1: From Continuous Thresholds to a Finite Class}
+
+Design a finite grid $G \subseteq [0,1]$ whose size depends only on $\Delta$, and consider the associated finite threshold class
+$$
+H_G = \{h_\theta : \theta \in G\}.
+$$
+
+Prove that for every $\Delta$-separated threshold-realizable sequence, there exists some $\widetilde{\theta} \in G$ such that
+$$
+h_{\widetilde{\theta}}(x_t) = y_t
+\qquad \text{for all } t=1,\dots,T.
+$$
+
+Then use the Halving theorem from lecture to derive a mistake bound of order
+$$
+O(\log(1/\Delta))
+$$
+for an explicit online learner.
+
+Your answer should clearly state:
+\begin{itemize}
+\item your choice of grid $G$,
+\item the size of $G$ as a function of $\Delta$,
+\item the resulting mistake bound.
+\end{itemize}
+
+\subsection*{Problem 2: A Positive Margin from Separation}
+
+View thresholds as linear predictors by choosing a feature map
+$$
+\phi : [0,1] \to \mathbb{R}^d
+$$
+and a unit vector $u^*$ depending on $\theta^*$.
+
+Prove that every $\Delta$-separated threshold-realizable sequence is linearly separable with margin at least $c\Delta$ for some absolute constant $c>0$ under your representation, while
+$$
+\|\phi(x)\| \le R
+\qquad \text{for all } x \in [0,1]
+$$
+for some absolute constant $R$.
+
+Then use the Perceptron theorem from lecture to derive an explicit mistake bound of order
+$$
+O(1/\Delta^2).
+$$
+
+Your answer should clearly specify your chosen feature map, the margin lower bound, the norm bound, and the final mistake bound.
+
+\subsection*{Problem 3: Comparison and Interpretation}
+
+Explain why the continuous-threshold impossibility phenomenon from lecture does not contradict Problem 1.
+
+Then compare the two mistake bounds obtained in Problems 1 and 2. Why do they scale differently with $\Delta$? What is each argument measuring about the problem?
+
+\subsection*{Problem 4: Optional Strengthening --- Audit an AI Proof}
+
+An AI assistant gives the following argument:
+
+\begin{quote}
+Because every example is at least $\Delta$ away from the true threshold, continuous thresholds effectively form a class of size $O(1/\Delta)$. Therefore any online learner, including Perceptron, must make at most $O(\log(1/\Delta))$ mistakes on every $\Delta$-separated threshold-realizable sequence.
+\end{quote}
+
+Identify at least two mathematical problems with this argument. Then write a corrected statement that is true and prove it.
+
+\section{Part C: Perceptron --- Implementation and Experiments (35 points)}
+
+In lecture, we proved that the Perceptron makes at most $R^2/\gamma^2$ mistakes on data that is linearly separable with margin $\gamma$ and bounded norm $\|x_t\| \le R$.
+
+Implement the Perceptron algorithm in Python, design a data-generation procedure, and run experiments addressing the following questions:
+
+\begin{enumerate}
+\item How do you generate data where you know the margin $\gamma$ and the bound $R$?
+\item How does the number of mistakes $M$ scale with $1/\gamma^2$? Plot this relationship.
+\item Is the theoretical bound $R^2/\gamma^2$ tight, or does the Perceptron do better in practice?
+\item The bound is independent of the dimension $d$. Is this what you observe?
+\item What happens as $\gamma \to 0$? Connect your observations to the threshold counterexample from lecture.
+\item If you used AI to help write your code, how did you verify that the implementation is correct? What tests or checks would catch a subtle bug in the update rule or data generator?
+\end{enumerate}
+
+Include your code, plots, and a short discussion of your findings in \texttt{hw1/}.
+
+\section{Part D: AI Usage Report (15 points)}
+
+Write a short report, about half a page, describing how you used AI in this assignment. Address:
+
+\begin{enumerate}
+\item Which parts of the assignment did you use AI for?
+\item Give at least one concrete example of an AI suggestion you accepted and why.
+\item Give at least one concrete example of an AI suggestion you rejected or modified, and why.
+\item How did you verify that the code and results were correct?
+\end{enumerate}
+
+Place this report in \texttt{hw1/} as a PDF or Markdown file.
+
+\end{document}

@@ -38,6 +38,13 @@
 \begin{document}
 \maketitle
 
+\section{Part A: Repository Setup}
+
+Repository link:
+
+\url{https://github.com/Ghostlikei/AI4LT}
+
+\newpage
 \section{Part B: Theory Problem}
 
 \subsection{Problem 1}
@@ -350,5 +357,374 @@ structural condition, namely $\Delta$-separation. Under that condition, the thre
 finite effective resolution and admits a logarithmic Halving bound. The Perceptron analysis gives a
 different guarantee because it measures geometric margin rather than the number of distinguishable
 thresholds, which is why it scales as $O(1/\Delta^2)$ instead of $O(\log(1/\Delta))$.
+
+\subsection{Problem 4}
+
+\subsubsection{Problems in the AI Argument}
+
+There are several mathematical problems with the quoted argument.
+
+\textbf{Problem 1: } The class of continuous thresholds does \emph{not} literally have size
+$O(1/\Delta)$. The hypothesis class
+$$
+\{h_\theta : \theta \in [0,1]\}
+$$
+is still uncountable. What is true is weaker: for each fixed $\Delta$, one can build a finite grid
+$G \subseteq [0,1]$ with $|G| = O(1/\Delta)$ such that every $\Delta$-separated
+threshold-realizable sequence is also realizable by some hypothesis in
+$$
+H_G = \{h_\theta : \theta \in G\}.
+$$
+So the correct statement is about the existence of a finite surrogate class on a restricted family
+of sequences, not about the cardinality of the original continuous class.
+
+\textbf{Problem 2: } Even if such a finite class $H_G$ exists, it does not follow that
+\emph{every} online learner enjoys the Halving bound. The Halving theorem gives an
+$O(\log |H_G|)$ mistake bound for the \emph{Halving algorithm run on $H_G$}. It says nothing about
+arbitrary learners.
+
+In fact, the claim ``any online learner'' is false. Consider the learner that always predicts $-1$.
+Fix any $0 < \Delta \leq 1$, and consider the sequence
+$$
+x_t = 1, \qquad y_t = +1 \qquad \text{for } t=1,\dots,T.
+$$
+This sequence is $\Delta$-separated threshold-realizable by $\theta^* = 0$, because
+$$
+h_{\theta^*}(x_t) = \operatorname{sign}(1-0) = +1
+\quad \text{and} \quad
+|x_t-\theta^*| = 1 \geq \Delta.
+$$
+But the always-$-1$ learner makes $T$ mistakes. Hence no statement of the form ``every online
+learner makes $O(\log(1/\Delta))$ mistakes'' can be true.
+
+\textbf{Problem 3: } The phrase ``including Perceptron'' is therefore unsupported. Perceptron does
+not inherit the Halving bound just because a finite consistent grid exists. Its guarantee comes from
+the margin analysis of Problem 2, which yields a bound of order $O(1/\Delta^2)$.
+
+\subsubsection{Corrected Statement}
+
+A correct statement is the following:
+
+\medskip
+
+\emph{For every $\Delta > 0$, there exists a finite grid $G \subseteq [0,1]$ with
+$|G| = O(1/\Delta)$ such that the Halving algorithm run on the finite class
+$$
+H_G = \{h_\theta : \theta \in G\}
+$$
+makes at most $O(\log(1/\Delta))$ mistakes on every $\Delta$-separated threshold-realizable
+sequence. By contrast, the Perceptron guarantee obtained from the margin argument is
+$O(1/\Delta^2)$.}
+
+\subsubsection{Proof of the Corrected Statement}
+
+Let
+$$
+m = \left\lceil \frac{1}{\Delta} \right\rceil
+\quad \text{and} \quad
+G = \left\{ \frac{k}{m} : k = 0,1,\dots,m \right\}.
+$$
+Then
+$$
+|G| = m+1 = \left\lceil \frac{1}{\Delta} \right\rceil + 1 = O(1/\Delta).
+$$
+
+Now consider any $\Delta$-separated threshold-realizable sequence. By definition, there exists
+$\theta^* \in [0,1]$ such that
+$$
+y_t = h_{\theta^*}(x_t)
+\quad \text{and} \quad
+|x_t-\theta^*| \geq \Delta
+\qquad \text{for all } t.
+$$
+Choose a grid point $\widetilde{\theta} \in G$ nearest to $\theta^*$. Since the grid spacing is
+$1/m \leq \Delta$, we have
+$$
+|\widetilde{\theta}-\theta^*| \leq \frac{1}{2m} \leq \frac{\Delta}{2}.
+$$
+
+We claim that $h_{\widetilde{\theta}}(x_t)=y_t$ for every round $t$.
+
+\textbf{Case 1: } If $y_t=+1$, then $x_t \geq \theta^*+\Delta$. Therefore
+$$
+x_t-\widetilde{\theta}
+\geq (\theta^*+\Delta)-\widetilde{\theta}
+\geq \Delta-|\widetilde{\theta}-\theta^*|
+\geq \frac{\Delta}{2}
+> 0.
+$$
+Hence
+$$
+h_{\widetilde{\theta}}(x_t)=+1=y_t.
+$$
+
+\textbf{Case 2: } If $y_t=-1$, then $x_t \leq \theta^*-\Delta$. Therefore
+$$
+x_t-\widetilde{\theta}
+\leq (\theta^*-\Delta)-\widetilde{\theta}
+\leq -\Delta+|\widetilde{\theta}-\theta^*|
+\leq -\frac{\Delta}{2}
+< 0.
+$$
+Hence
+$$
+h_{\widetilde{\theta}}(x_t)=-1=y_t.
+$$
+
+So the entire sequence is realizable by one hypothesis in the finite class $H_G$. Applying the
+Halving theorem to $H_G$, the number of mistakes made by the Halving algorithm is at most
+$$
+\log_2 |H_G|
+= \log_2 \left( \left\lceil \frac{1}{\Delta} \right\rceil + 1 \right)
+= O(\log(1/\Delta)).
+$$
+
+Finally, this does \emph{not} imply the same bound for Perceptron. The Perceptron analysis from
+Problem 2 uses the representation $\phi(x)=(x,1)$, a norm bound $R \leq \sqrt{2}$, and a margin
+lower bound $\gamma \geq \Delta/\sqrt{2}$. Therefore the Perceptron theorem gives
+$$
+M \leq \frac{R^2}{\gamma^2}
+\leq \frac{2}{(\Delta/\sqrt{2})^2}
+= \frac{4}{\Delta^2}
+= O(1/\Delta^2).
+$$
+This is a different guarantee obtained by a different argument.
+
+\subsubsection{Conclusion}
+
+The AI argument fails because it confuses an infinite class with a finite surrogate class, and then
+incorrectly transfers a Halving guarantee to arbitrary learners. The correct logarithmic mistake
+bound is an existence statement for a specific learner, namely Halving on a carefully chosen grid.
+Perceptron is governed instead by the margin analysis, which yields the weaker bound
+$O(1/\Delta^2)$.
+
+\newpage
+\section{Part C: Perceptron --- Implementation and Experiments}
+
+\subsection{Question 1: Data Generation}
+
+To generate data with a known margin and a known norm bound, I fixed the true separator to
+$$
+u = e_1 = (1,0,\dots,0) \in \mathbb{R}^d
+$$
+and then sampled each example in the form
+$$
+x_t = y_t \gamma u + \rho_t v_t,
+$$
+where:
+\begin{itemize}
+\item $y_t \in \{-1,+1\}$ is sampled uniformly,
+\item $v_t$ is a unit vector orthogonal to $u$,
+\item $0 \leq \rho_t \leq \sqrt{R^2-\gamma^2}$.
+\end{itemize}
+
+This construction gives an exact signed margin:
+$$
+y_t \langle u, x_t \rangle
+= y_t \langle u, y_t \gamma u + \rho_t v_t \rangle
+= \gamma,
+$$
+because $\langle u, v_t \rangle = 0$ and $\|u\|=1$. It also enforces the norm bound
+$$
+\|x_t\|^2 = \gamma^2 + \rho_t^2 \leq R^2.
+$$
+
+In all experiments below I set
+$$
+R=1,
+$$
+so the theoretical mistake bound becomes
+$$
+\frac{R^2}{\gamma^2} = \frac{1}{\gamma^2}.
+$$
+
+The implementation runs the standard online Perceptron with update rule
+$$
+w_{t+1} =
+\begin{cases}
+w_t + y_t x_t, & \text{if } y_t \langle w_t, x_t \rangle \leq 0, \\
+w_t, & \text{otherwise.}
+\end{cases}
+$$
+I initialized $w_1=0$ and used fixed random seeds for reproducibility.
+
+\subsection{Question 2: Scaling with \texorpdfstring{$1/\gamma^2$}{1 over gamma squared}}
+
+For the main scaling experiment, I fixed $d=25$ and swept $\gamma$ over
+$$
+\{0.50, 0.35, 0.25, 0.18, 0.14, 0.11, 0.09, 0.07, 0.055\}.
+$$
+For each value of $\gamma$, I generated a sequence whose length was a constant multiple of
+$1/\gamma^2$, ran $48$ independent trials, and recorded the number of Perceptron mistakes.
+
+The empirical relationship is shown in Figure~\ref{fig:mistakes-vs-inv-gamma2}. A log-log fit of
+the average mistake count versus $1/\gamma^2$ gave slope
+$$
+0.998,
+$$
+which is essentially linear scaling in $1/\gamma^2$. So the experiments agree very closely with
+the theorem's prediction about how the mistake count should grow as the margin shrinks.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=1\linewidth]{figures/mistakes_vs_inv_gamma2.png}
+  \caption{Average Perceptron mistakes versus $1/\gamma^2$, together with the theoretical bound $R^2/\gamma^2$.}
+  \label{fig:mistakes-vs-inv-gamma2}
+\end{figure}
+
+\subsection{Question 3: Tightness of the Bound}
+
+The bound has the correct order, but it is not tight in constant for these random sequences. Across
+the same sweep, the average mistake count was between about
+$$
+0.344 \cdot \frac{R^2}{\gamma^2}
+\quad \text{and} \quad
+0.436 \cdot \frac{R^2}{\gamma^2},
+$$
+with mean ratio
+$$
+0.393.
+$$
+So in practice the Perceptron did noticeably better than the worst-case upper bound, even though the
+growth rate still tracked $1/\gamma^2$ very closely.
+
+Figure~\ref{fig:bound-ratio-vs-gamma} makes this more explicit: the ratio stays well below $1$
+throughout the sweep, so the theorem is conservative on this data distribution.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=1\linewidth]{figures/bound_ratio_vs_gamma.png}
+  \caption{Average mistake count divided by the theoretical bound $R^2/\gamma^2$. The observed ratio stays well below $1$.}
+  \label{fig:bound-ratio-vs-gamma}
+\end{figure}
+
+\subsection{Question 4: Dependence on the Dimension}
+
+To test dimension dependence, I fixed
+$$
+\gamma = 0.08
+$$
+and varied
+$$
+d \in \{2,5,10,20,50,100,200\}.
+$$
+For each dimension I ran $36$ trials on a sequence long enough to allow the Perceptron to realize
+most of its mistakes.
+
+The result is shown in Figure~\ref{fig:mistakes-vs-dimension}. I did \emph{not} observe any
+explosive dependence on $d$. The mean mistake count rose from about $14.1$ at $d=2$ to roughly
+$64$--$66$ for $d=50,100,200$, and the change from $d=20$ to $d=200$ was only about $3.3\%$.
+So the data are not perfectly flat in $d$, but once the dimension is moderately large, the mistake
+count essentially plateaus instead of growing with dimension. That is qualitatively consistent with
+the theorem being dimension-free.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=1\linewidth]{figures/mistakes_vs_dimension.png}
+  \caption{Average mistakes as the ambient dimension changes at fixed margin $\gamma = 0.08$. The curve rises at very small dimensions and then largely flattens.}
+  \label{fig:mistakes-vs-dimension}
+\end{figure}
+
+\subsection{Question 5: What Happens as \texorpdfstring{$\gamma \to 0$}{gamma -> 0}?}
+
+For a smaller-margin sweep, I used
+$$
+\gamma \in \{0.20, 0.15, 0.12, 0.10, 0.08, 0.06, 0.05, 0.04, 0.03\}
+$$
+with $d=25$. The behavior is shown in Figure~\ref{fig:mistakes-small-gamma}. As $\gamma$
+decreased from $0.20$ to $0.03$, the average mistake count increased from about
+$$
+11.46
+$$
+to about
+$$
+388.96.
+$$
+
+This matches the lecture intuition from the threshold counterexample. When $\gamma$ is small, the
+examples lie very close to the decision boundary, so the learner receives only weak geometric
+separation. The Perceptron still has a finite mistake guarantee for any fixed positive $\gamma$, but
+the guarantee deteriorates rapidly as $\gamma \to 0$. In that sense, the small-margin regime is the
+finite-margin shadow of the no-margin threshold phenomenon from lecture.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=1\linewidth]{figures/mistakes_small_gamma.png}
+  \caption{Average mistakes and the theoretical bound as $\gamma \to 0$. Both grow rapidly, reflecting the difficulty of learning from near-boundary examples.}
+  \label{fig:mistakes-small-gamma}
+\end{figure}
+
+\subsection{Question 6: How I Verified the Implementation}
+
+If AI helps write code for this part, I do not want to trust the first draft blindly. I built three
+checks directly into the experiment script:
+\begin{itemize}
+\item \textbf{Single-update test: } starting from $w=0$, one misclassified positive example should
+produce exactly the update $w \leftarrow x$.
+\item \textbf{Generator invariant test: } every generated sequence is checked to ensure
+$$
+y_t \langle u, x_t \rangle \geq \gamma
+$$
+and
+$$
+\|x_t\| \leq R
+$$
+up to numerical tolerance.
+\item \textbf{Tiny separable-dataset convergence test: } on a hand-written separable dataset,
+repeated passes of the Perceptron must end with zero training mistakes.
+\end{itemize}
+
+These checks would catch subtle bugs such as dropping the factor $y_t$ in the update rule, flipping
+the sign in the margin test, or writing a data generator that silently violates the claimed margin.
+
+\subsection{Code}
+
+The experiment code for this part is stored at the relative path
+\path{hw1/code/perceptron_experiments.py}. The generated numerical summary is stored at
+\path{hw1/code/perceptron_summary.json}, and the plots used in this section are stored under
+\path{hw1/figures/}.
+
+\newpage
+\section{Part D: AI Usage Report}
+
+Disclaimer: I did not use AI for this part.
+
+\subsection{Q1}
+
+Actually I use AI(Codex with GPT 5.4 X-High) for every point you mentioned in the question.
+
+\subsection{Q2}
+
+There is one interesting case when I set up the skill and ask AI to design the pipeline for writing the proofs.
+
+I use VSCode, and codex is embedded inside. To quickly review the proofs I have to use the vscode pdf extension. At first, The layout is problematic,
+like no title, duplicated section numbers. I ask AI to check whether it's the tex error or the compiler error, and it found they were all good, and checked the pdf
+itself by some specific parser. Then it found the problem is the pdf extension, and it suggested me to use another one. After I switched to the new pdf extension, the layout is fixed and looks good.
+
+\subsection{Q3}
+
+Codex is really good at writting proofs, but bad at styling things. So I write some prompts to make the proof more organized and structured. like subsections and titles.
+But the proof itself is still not so perfect as human writing, so I will keep update add finding a good skill to make it more clear.
+
+\subsection{Q4}
+
+This problem set is not so hard so I just roughly checked the results.
+
+\subsection{Misc}
+
+In this assignment, I only use codex because I'm more famailiar with it. Next time I will investigate Claude Code. And I also spent a lot of time dealing with some
+connection errors for codex on MacOS, and finally I gave up and put it to my linux server. Hope they could fix the problem soon.
+
+\medskip
+
+Skills that I built for this assignment and their brief descriptions:
+
+\begin{itemize}
+\item \textbf{/lt-proof} A complete pipeline to write a single proof, with component design and self-checking.
+\item \textbf{/lt-latex-homework-format} A skill that make sure the proof is aligned with required format.
+\item \textbf{/lt-compile-pdf} A command to quickly compile the tex file.
+\end{itemize}
+
+Chain of skill is also interesting...
 
 \end{document}

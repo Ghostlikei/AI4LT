@@ -15,15 +15,22 @@ Preferred convention: start the request with `/skill-name` and then state the ta
 
 When a skill in this file is invoked:
 
-1. Read the referenced problem statement from the repo before solving.
-2. If the homework is only available as a PDF and no companion statement file exists yet, create a reusable LaTeX transcription such as `hw_1_statement.tex` in the same homework folder.
-3. Prefer reusing the companion statement `.tex` file on later turns instead of re-reading the PDF.
-4. Separate brainstorming from the final polished solution.
-5. State assumptions when the problem statement or prior work is ambiguous.
-6. Prefer concise, checkable arguments over long intuitive explanations.
-7. Write final proof-based homework answers in LaTeX unless the user asks for plain text.
-8. When formatting a final writeup, use `AI4LT/assets/tex/hw_template.tex` as the base template unless the user says otherwise.
-9. Mirror the assignment PDF structure whenever possible, using section and subsection titles that match the problem set.
+1. Check whether the Conda environment `ai4lt` is active before doing repo work. If it is not active, run `conda activate ai4lt` and verify the activation before continuing.
+2. Check whether `pdflatex` is available after activation. If it is missing, run `bash scripts/setup_pdflatex.sh` from the repo root and verify the compiler before continuing.
+3. Read the referenced problem statement from the repo before solving.
+4. If the homework is only available as a PDF and no companion statement file exists yet, create a reusable LaTeX transcription such as `hw_1_statement.tex` in the same homework folder.
+5. Prefer reusing the companion statement `.tex` file on later turns instead of re-reading the PDF.
+6. Separate brainstorming from the final polished solution.
+7. State assumptions when the problem statement or prior work is ambiguous.
+8. Prefer concise, checkable arguments over long intuitive explanations.
+9. Write final proof-based homework answers in LaTeX unless the user asks for plain text.
+10. When formatting a final writeup, use `AI4LT/assets/tex/hw_template.tex` as the base template unless the user says otherwise.
+11. Mirror the assignment PDF structure whenever possible, using section and subsection titles that match the problem set.
+12. Put homework code under the assignment-local `code/` directory such as `hw1/code/`.
+13. Save homework plots as `.png` files under the assignment-local `figures/` directory such as `hw1/figures/`.
+14. Include code in LaTeX using the `listings` package, preferably with `\lstinputlisting` when the code already lives in a file.
+15. Include plots in LaTeX with a standard `figure` environment using `\includegraphics[width=1\linewidth]{...}`, plus a caption and label.
+16. Insert `\newpage` before each new top-level `\section{...}` after the first section in the homework writeup.
 
 ## Sample Skill: `lt-proof`
 
@@ -52,14 +59,16 @@ Expect some or all of the following:
 
 ### Workflow
 
-1. Look for a companion homework statement `.tex` file in the same folder and use it if present.
-2. If no companion statement file exists, transcribe the homework PDF into one once, save it, and reuse it in later turns.
-3. Read the relevant problem statement.
-4. List the definitions, assumptions, and lemmas that seem relevant.
-5. Propose a proof strategy before writing the full derivation.
-6. Write a proof sketch with explicit logical steps.
-7. Convert the sketch into a polished solution if requested.
-8. Finish with a short self-check:
+1. Verify that the Conda environment `ai4lt` is active. If not, activate it first.
+2. Verify that `pdflatex` is available. If not, run `bash scripts/setup_pdflatex.sh` from the repo root.
+3. Look for a companion homework statement `.tex` file in the same folder and use it if present.
+4. If no companion statement file exists, transcribe the homework PDF into one once, save it, and reuse it in later turns.
+5. Read the relevant problem statement. You can refer to resources in this website: `https://teach-learning-theory.tianhaowang.com/`
+6. List the definitions, assumptions, and lemmas that seem relevant.
+7. Propose a proof strategy before writing the full derivation.
+8. Write a proof sketch with explicit logical steps.
+9. Convert the sketch into a polished solution if requested.
+10. Finish with a short self-check:
    - did the proof use every needed assumption?
    - did it prove the exact claim asked in the problem?
    - are there hidden gaps or unjustified jumps?
@@ -83,6 +92,7 @@ Unless the user asks for something else, respond in this order:
 - Keep notation consistent with the homework statement.
 - Avoid introducing advanced machinery unless it clearly simplifies the argument.
 - If the student already solved part of the problem, build on it instead of restarting from scratch.
+- Use `pdflatex` as the default LaTeX compiler for repo compile checks.
 
 ### Example Prompts
 
@@ -116,15 +126,17 @@ Expect some or all of the following:
 
 ### Workflow
 
-1. Read `AI4LT/assets/tex/hw_template.tex` before drafting the final LaTeX.
-2. Preserve the existing preamble unless the user asks for a package or layout change.
-3. Fill in title, author, and section headers using the current style preferences below.
-4. Convert the proof into concise mathematical prose with consistent notation.
-5. Use the preferred display-math style from the current style preferences.
-6. Return either:
+1. Verify that the Conda environment `ai4lt` is active. If not, activate it first.
+2. Verify that `pdflatex` is available. If not, run `bash scripts/setup_pdflatex.sh` from the repo root.
+3. Read `AI4LT/assets/tex/hw_template.tex` before drafting the final LaTeX.
+4. Preserve the existing preamble unless the user asks for a package or layout change.
+5. Fill in title, author, and section headers using the current style preferences below.
+6. Convert the proof into concise mathematical prose with consistent notation.
+7. Use the preferred display-math style from the current style preferences.
+8. Return either:
    - a drop-in LaTeX snippet for one problem, or
    - a full document fragment that fits directly into the template
-7. If a user gives a new style rule, update this skill description first and then follow it.
+9. If a user gives a new style rule, update this skill description first and then follow it.
 
 ### Output Format
 
@@ -141,11 +153,17 @@ Treat this block as editable course memory. Update it when the user gives new fo
 - Default deliverable: LaTeX
 - Title style: use the assignment title in the template and adjust it when the user specifies a new title
 - Problem structure: use assignment-aligned headings such as `\section{Part B: Theory Problem}` and `\subsection{Problem 1}` when they match the problem set
+- New-section paging: insert `\newpage` before each new top-level section after the first
 - Internal proof structure: break polished proofs into `\subsubsection{...}` blocks such as setup, case analysis, mistake bound derivation, and conclusion when that improves readability
 - Case formatting: write case splits with bold labels such as `\textbf{Case 1: }`
 - Display math: prefer `$$ ... $$` for unnumbered displayed equations
 - Numbered equations: use `\begin{equation} ... \end{equation}` only when numbering is explicitly useful or requested
 - Tone: concise, proof-oriented, and homework-ready
+- Code location: store homework code in the assignment-local `code/` directory such as `hw1/code/`
+- Code inclusion: use the `listings` package, preferably `\lstinputlisting`, to include code from files
+- Long-code handling: when the code is too long for the report, do not inline it; instead, give a relative path to the code file in the writeup
+- Plot format: save plots as `.png` files in the assignment-local `figures/` directory such as `hw1/figures/`
+- Figure inclusion: use `figure` environments with `\includegraphics[width=1\linewidth]{...}`, plus captions and labels
 
 ### Style Rules
 
@@ -155,12 +173,55 @@ Treat this block as editable course memory. Update it when the user gives new fo
 - Prefer a visibly structured layout over one long proof block.
 - If a proof is incomplete, reflect that honestly in the LaTeX instead of hiding the gap.
 - When the user changes a style preference, treat the new preference as the latest default for this repo.
+- Use `pdflatex` as the default LaTeX compiler for repo compile checks.
 
 ### Example Prompts
 
 - `/lt-latex-homework-format Turn my solution for hw1 part b into LaTeX using the template.`
 - `/lt-latex-homework-format Update the title to "Homework 1" and rewrite the display equations using $$ blocks.`
 - `[lt-latex-homework-format] Format this proof as a section I can paste into the assignment file.`
+
+## Sample Skill: `lt-compile-pdf`
+
+### Purpose
+
+Compile a homework LaTeX file to PDF without changing the content.
+
+### Use When
+
+- compile a `.tex` homework file to `.pdf`
+- rerun the LaTeX build after edits
+- check whether the current LaTeX source builds successfully
+
+### Inputs
+
+- a target `.tex` file such as `AI4LT/hw1/hw1.tex`
+
+### Workflow
+
+1. Verify that the Conda environment `ai4lt` is active. If not, activate it first.
+2. Verify that `pdflatex` is available. If not, run `bash scripts/setup_pdflatex.sh` from the repo root.
+3. Run `bash scripts/compile_tex_to_pdf.sh path/to/file.tex`.
+4. Report whether the build succeeded and mention the output PDF path.
+5. Do not edit the `.tex` source unless the user explicitly asks for code or LaTeX changes.
+
+### Output Format
+
+1. `Build status`
+2. `Output PDF`
+3. `Notes on warnings or failures`
+
+### Style Rules
+
+- This skill only compiles; it does not rewrite the homework.
+- Use `pdflatex` as the compiler.
+- Keep the response short and build-focused.
+
+### Example Prompts
+
+- `/lt-compile-pdf Compile AI4LT/hw1/hw1.tex to PDF.`
+- `/lt-compile-pdf Rebuild hw1/hw1.tex after my edits.`
+- `/lt-compile-pdf Check whether hw1.tex compiles cleanly.`
 
 ## Template For New Skills
 

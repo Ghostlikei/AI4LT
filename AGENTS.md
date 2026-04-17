@@ -19,18 +19,19 @@ When a skill in this file is invoked:
 2. Check whether `pdflatex` is available after activation. If it is missing, run `bash scripts/setup_pdflatex.sh` from the repo root and verify the compiler before continuing.
 3. Read the referenced problem statement from the repo before solving.
 4. If the homework is only available as a PDF and no companion statement file exists yet, create a reusable LaTeX transcription such as `hw_1_statement.tex` in the same homework folder.
-5. Prefer reusing the companion statement `.tex` file on later turns instead of re-reading the PDF.
-6. Separate brainstorming from the final polished solution.
-7. State assumptions when the problem statement or prior work is ambiguous.
-8. Prefer concise, checkable arguments over long intuitive explanations.
-9. Write final proof-based homework answers in LaTeX unless the user asks for plain text.
-10. When formatting a final writeup, use `AI4LT/assets/tex/hw_template.tex` as the base template unless the user says otherwise.
-11. Mirror the assignment PDF structure whenever possible, using section and subsection titles that match the problem set.
-12. Put homework code under the assignment-local `code/` directory such as `hw1/code/`.
-13. Save homework plots as `.png` files under the assignment-local `figures/` directory such as `hw1/figures/`.
-14. Include code in LaTeX using the `listings` package, preferably with `\lstinputlisting` when the code already lives in a file.
-15. Include plots in LaTeX with a standard `figure` environment using `\includegraphics[width=1\linewidth]{...}`, plus a caption and label.
-16. Insert `\newpage` before each new top-level `\section{...}` after the first section in the homework writeup.
+5. When extracting a PDF into a companion statement file, prefer using `pypdf` inside the active `ai4lt` environment before cleaning the text into LaTeX.
+6. Prefer reusing the companion statement `.tex` file on later turns instead of re-reading the PDF.
+7. Separate brainstorming from the final polished solution.
+8. State assumptions when the problem statement or prior work is ambiguous.
+9. Prefer concise, checkable arguments over long intuitive explanations.
+10. Write final proof-based homework answers in LaTeX unless the user asks for plain text.
+11. When formatting a final writeup, use `AI4LT/assets/tex/hw_template.tex` as the base template unless the user says otherwise.
+12. Mirror the assignment PDF structure whenever possible, using section and subsection titles that match the problem set.
+13. Put homework code under the assignment-local `code/` directory such as `hw1/code/`.
+14. Save homework plots as `.png` files under the assignment-local `figures/` directory such as `hw1/figures/`.
+15. Include code in LaTeX using the `listings` package, preferably with `\lstinputlisting` when the code already lives in a file.
+16. Include plots in LaTeX with a standard `figure` environment using `\includegraphics[width=1\linewidth]{...}`, plus a caption and label.
+17. Insert `\newpage` before each new top-level `\section{...}` after the first section in the homework writeup.
 
 ## Sample Skill: `lt-proof`
 
@@ -62,7 +63,7 @@ Expect some or all of the following:
 1. Verify that the Conda environment `ai4lt` is active. If not, activate it first.
 2. Verify that `pdflatex` is available. If not, run `bash scripts/setup_pdflatex.sh` from the repo root.
 3. Look for a companion homework statement `.tex` file in the same folder and use it if present.
-4. If no companion statement file exists, transcribe the homework PDF into one once, save it, and reuse it in later turns.
+4. If no companion statement file exists, transcribe the homework PDF into one once, preferably by extracting the text with `pypdf` inside `ai4lt`, save it, and reuse it in later turns.
 5. Read the relevant problem statement. You can refer to resources in this website: `https://teach-learning-theory.tianhaowang.com/`
 6. List the definitions, assumptions, and lemmas that seem relevant.
 7. Propose a proof strategy before writing the full derivation.

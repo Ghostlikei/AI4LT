@@ -1,0 +1,691 @@
+\documentclass{article}
+
+\usepackage[english]{babel}
+\usepackage[letterpaper,top=2cm,bottom=2cm,left=3cm,right=3cm,marginparwidth=1.75cm]{geometry}
+\setlength{\parindent}{0pt}
+
+\usepackage{amsmath}
+\usepackage{amsthm}
+\usepackage{amssymb}
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage{listings}
+\usepackage[colorlinks=true, allcolors=blue]{hyperref}
+\usepackage{xcolor}
+
+\lstset{
+  basicstyle=\ttfamily\small,
+  numbers=left,
+  numberstyle=\tiny,
+  stepnumber=1,
+  numbersep=8pt,
+  backgroundcolor=\color{gray!10},
+  frame=single,
+  rulecolor=\color{gray!60},
+  tabsize=2,
+  captionpos=b,
+  breaklines=true,
+  breakatwhitespace=true,
+  showstringspaces=false,
+  keywordstyle=\color{blue},
+  commentstyle=\color{green!50!black},
+  stringstyle=\color{orange},
+}
+
+\title{DSC 291: Learning Theory Assignment 2}
+\author{Tongle Shen}
+
+\begin{document}
+\maketitle
+
+\section{Part A: Unions of Two Intervals on the Line}
+
+Throughout Part A, let
+$$
+\mathcal{H}_2
+=
+\{x \mapsto 1[x \in I_1 \cup I_2] : I_1, I_2 \subseteq \mathbb{R} \text{ are intervals}\},
+$$
+and fix ordered points
+$$
+x_1 < x_2 < \cdots < x_n.
+$$
+Also choose cutpoints
+$$
+t_0 < x_1 < t_1 < x_2 < \cdots < x_n < t_n,
+$$
+for example by taking $t_i \in (x_i,x_{i+1})$ for $1 \le i \le n-1$ and any $t_0 < x_1$, $t_n > x_n$.
+
+\subsection{Problem 1}
+
+\subsubsection{Characterization}
+
+A binary labeling $(y_1,\dots,y_n) \in \{0,1\}^n$ is realizable by $\mathcal{H}_2$ if and only if the set
+$$
+\{i \in [n] : y_i = 1\}
+$$
+is a union of at most two intervals of indices.
+
+Equivalently, the bit string has at most two runs of $1$'s, so it has the form
+$$
+0^a 1^b 0^c 1^d 0^e
+$$
+with $a,b,c,d,e \ge 0$.
+
+\subsubsection{Why Every Realizable Labeling Has This Form}
+
+Let
+$$
+h(x) = 1[x \in I_1 \cup I_2]
+$$
+with $I_1$ and $I_2$ intervals. Since the sample points are ordered, each interval intersects the sample in a consecutive block of points, possibly empty. Therefore
+$$
+\{i : h(x_i) = 1\}
+$$
+is the union of at most two consecutive index blocks. So every realizable labeling has at most two runs of $1$'s.
+
+\subsubsection{Why Every Such Labeling Is Realizable}
+
+Conversely, suppose the positive indices are
+$$
+[a_1,b_1] \cup [a_2,b_2]
+$$
+where one or both blocks may be absent, and if both are present then
+$$
+1 \le a_1 \le b_1 < a_2 \le b_2 \le n.
+$$
+Define
+$$
+I_1 = [t_{a_1-1}, t_{b_1}]
+\qquad \text{and} \qquad
+I_2 = [t_{a_2-1}, t_{b_2}]
+$$
+for the nonempty blocks. Then
+$$
+x_i \in I_1 \cup I_2
+\iff
+i \in [a_1,b_1] \cup [a_2,b_2].
+$$
+So every labeling with at most two runs of $1$'s is realized by some hypothesis in $\mathcal{H}_2$.
+
+\subsubsection{Conclusion}
+
+The exact restriction patterns of $\mathcal{H}_2$ on an ordered $n$-point sample are precisely the binary strings with at most two runs of $1$'s.
+
+\subsection{Problem 2}
+
+\subsubsection{Counting the Patterns}
+
+By Problem 1, a pattern is determined by its runs of $1$'s.
+
+\textbf{Zero runs of $1$'s.}
+There is exactly one such pattern, namely the all-zero labeling.
+
+\textbf{Exactly one run of $1$'s.}
+Choose integers
+$$
+0 \le s < t \le n.
+$$
+Then the positive block is
+$$
+\{s+1,s+2,\dots,t\}.
+$$
+This gives exactly
+$$
+\binom{n+1}{2}
+$$
+patterns.
+
+\textbf{Exactly two runs of $1$'s.}
+Choose integers
+$$
+0 \le s_1 < t_1 < s_2 < t_2 \le n.
+$$
+Then the positive set is
+$$
+\{s_1+1,\dots,t_1\} \cup \{s_2+1,\dots,t_2\}.
+$$
+This gives exactly
+$$
+\binom{n+1}{4}
+$$
+patterns.
+
+\subsubsection{Exact Growth Formula}
+
+Therefore
+$$
+\Gamma_{\mathcal{H}_2}(n)
+=
+1 + \binom{n+1}{2} + \binom{n+1}{4}.
+$$
+
+Since only the order of the sample matters, every ordered $n$-point sample yields the same count, so this is the growth function.
+
+\subsection{Problem 3}
+
+\subsubsection{Exact VC Dimension}
+
+For $n=4$, every binary string of length $4$ has at most two runs of $1$'s, so every labeling of four ordered points is realizable by $\mathcal{H}_2$. Hence
+$$
+\operatorname{VCdim}(\mathcal{H}_2) \ge 4.
+$$
+
+For $n=5$, the pattern
+$$
+10101
+$$
+has three runs of $1$'s, so by Problem 1 it is not realizable. Thus five points cannot be shattered, and
+$$
+\operatorname{VCdim}(\mathcal{H}_2) \le 4.
+$$
+
+Therefore
+$$
+\operatorname{VCdim}(\mathcal{H}_2) = 4.
+$$
+
+\subsubsection{Halving Mistake Bound on an n-Point Pool}
+
+On a fixed realizable $n$-point pool, the Week 2 restriction-based Halving bound gives
+$$
+M \le \log_2 N,
+$$
+where $N$ is the number of distinct labeling patterns on that pool. Here
+$$
+N = \Gamma_{\mathcal{H}_2}(n)
+=
+1 + \binom{n+1}{2} + \binom{n+1}{4},
+$$
+so
+$$
+M
+\le
+\log_2\!\left(1 + \binom{n+1}{2} + \binom{n+1}{4}\right).
+$$
+
+In particular, this is
+$$
+M = O(\log n).
+$$
+
+\subsubsection{Comparison with Sauer--Shelah}
+
+Since $\operatorname{VCdim}(\mathcal{H}_2) = 4$, Sauer--Shelah gives
+$$
+\Gamma_{\mathcal{H}_2}(n)
+\le
+\sum_{k=0}^4 \binom{n}{k}.
+$$
+
+But our exact formula satisfies
+$$
+1 + \binom{n+1}{2} + \binom{n+1}{4}
+=
+1 + \binom{n}{1} + \binom{n}{2} + \binom{n}{3} + \binom{n}{4}
+=
+\sum_{k=0}^4 \binom{n}{k},
+$$
+where we used Pascal's identity
+$$
+\binom{n+1}{2} = \binom{n}{1} + \binom{n}{2},
+\qquad
+\binom{n+1}{4} = \binom{n}{3} + \binom{n}{4}.
+$$
+
+So in this class the Sauer--Shelah bound is exactly tight for every $n$.
+
+This shows that a VC-dimension-based upper bound can be tight when the class is extremal enough to attain the maximum number of patterns permitted by its VC dimension.
+
+\subsection{Problem 4}
+
+\subsubsection{A Concrete Extremal Class}
+
+Let the domain be
+$$
+\mathcal{X} = \mathbb{N},
+$$
+and define
+$$
+\mathcal{H}_d
+=
+\{x \mapsto 1[x \in A] : A \subseteq \mathbb{N},\ |A| \le d\}.
+$$
+
+\subsubsection{Its VC Dimension}
+
+Any set of $d$ distinct points can be shattered: if
+$$
+C = \{x_1,\dots,x_d\},
+$$
+then for every subset $B \subseteq C$ we can choose
+$$
+A = B,
+$$
+which has size at most $d$, and obtain the labeling
+$$
+1[x \in A]
+$$
+that is $1$ exactly on $B$.
+
+So
+$$
+\operatorname{VCdim}(\mathcal{H}_d) \ge d.
+$$
+
+On the other hand, no set of size $d+1$ can be shattered, because the all-ones labeling on those $d+1$ points would require a set $A$ of size at least $d+1$, which is not allowed. Hence
+$$
+\operatorname{VCdim}(\mathcal{H}_d) \le d.
+$$
+
+Therefore
+$$
+\operatorname{VCdim}(\mathcal{H}_d) = d.
+$$
+
+\subsubsection{Its Growth Function at n Points}
+
+Now fix any set $C$ of $n$ distinct points. The restrictions of $\mathcal{H}_d$ to $C$ are exactly the subsets of $C$ of size at most $d$. Therefore
+$$
+\Gamma_{\mathcal{H}_d}(n)
+=
+\sum_{k=0}^d \binom{n}{k}.
+$$
+
+\subsubsection{What This Shows}
+
+This example shows that the Sauer--Shelah bound is best possible in general: one cannot replace
+$$
+\sum_{k=0}^d \binom{n}{k}
+$$
+by a uniformly smaller function of $n$ and $d$ for all hypothesis classes of VC dimension $d$.
+
+\subsection{Problem 5}
+
+\subsubsection{What Is Wrong with the AI Argument}
+
+The final numerical conclusion happens to be true, but the reasoning is not correct.
+
+\textbf{First problem:} the argument counts the wrong objects. A labeling on an ordered sample is controlled by boundaries between sample points, not by the sample positions themselves. The natural parameters are the cutpoints
+$$
+t_0,t_1,\dots,t_n,
+$$
+or equivalently the gaps together with boundary information.
+
+\textbf{Second problem:} ``at most four switches'' gives only an upper bound. To conclude an exact formula, one must show a one-to-one correspondence between realizable labelings and the allowed boundary choices. The AI argument never proves that every admissible choice is realizable and never checks that different choices do not overcount the same labeling.
+
+\subsubsection{Correct Statement}
+
+The correct theorem is:
+
+\begin{quote}
+On an ordered $n$-point sample, the labelings realized by $\mathcal{H}_2$ are exactly the binary strings with at most two runs of $1$'s. Consequently,
+$$
+\Gamma_{\mathcal{H}_2}(n)
+=
+1 + \binom{n+1}{2} + \binom{n+1}{4}
+=
+\sum_{k=0}^4 \binom{n}{k},
+$$
+and
+$$
+\operatorname{VCdim}(\mathcal{H}_2) = 4.
+$$
+\end{quote}
+
+\subsubsection{Why This Correct Statement Is Justified}
+
+Problem 1 gave the exact structural characterization, and Problem 2 counted those patterns exactly. Problem 3 then proved the exact VC dimension from that characterization. So the conclusion is true, but it is supported by the interval-block analysis above rather than by the AI's incomplete switch-counting argument.
+
+\newpage
+\section{Part B: Quadratic Threshold Functions on the Line}
+
+Throughout Part B, let
+$$
+\mathcal{H}_{\mathrm{quad}}
+=
+\{x \mapsto 1[ax^2 + bx + c \ge 0] : (a,b,c) \in \mathbb{R}^3,\ (a,b,c) \ne (0,0,0)\},
+$$
+and again fix ordered points
+$$
+x_1 < x_2 < \cdots < x_n.
+$$
+
+\subsection{Problem 1}
+
+\subsubsection{Claim}
+
+If there exist an integer $D \ge 1$ and a map
+$$
+\phi : \mathcal{X} \to \mathbb{R}^D
+$$
+such that every $h \in \mathcal{H}$ has the form
+$$
+h(x) = 1[\langle w,\phi(x)\rangle \ge 0]
+$$
+for some $w \in \mathbb{R}^D$, then
+$$
+\operatorname{VCdim}(\mathcal{H}) \le D.
+$$
+
+\subsubsection{Proof}
+
+Assume for contradiction that $\mathcal{H}$ shatters some set
+$$
+\{x_1,\dots,x_m\}
+$$
+with
+$$
+m > D.
+$$
+For every binary labeling $(y_1,\dots,y_m) \in \{0,1\}^m$, since the set is shattered there exists $h \in \mathcal{H}$ such that
+$$
+h(x_i) = y_i
+\qquad \text{for all } i=1,\dots,m.
+$$
+By assumption, this $h$ can be written as
+$$
+h(x) = 1[\langle w,\phi(x)\rangle \ge 0]
+$$
+for some $w \in \mathbb{R}^D$. Therefore
+$$
+1[\langle w,\phi(x_i)\rangle \ge 0] = y_i
+\qquad \text{for all } i=1,\dots,m.
+$$
+
+So the transformed points
+$$
+\phi(x_1),\dots,\phi(x_m) \in \mathbb{R}^D
+$$
+are shattered by homogeneous halfspaces in $\mathbb{R}^D$.
+
+But Week 2 gives that homogeneous halfspaces in $\mathbb{R}^D$ have VC dimension exactly $D$, so they cannot shatter more than $D$ points. This contradicts $m > D$.
+
+Hence
+$$
+\operatorname{VCdim}(\mathcal{H}) \le D.
+$$
+
+\subsection{Problem 2}
+
+\subsubsection{Explicit Feature Map}
+
+Take
+$$
+\phi(x) = (x^2,x,1) \in \mathbb{R}^3.
+$$
+For any nonzero coefficient vector
+$$
+w = (a,b,c) \in \mathbb{R}^3,
+$$
+we have
+$$
+\langle w,\phi(x)\rangle = ax^2 + bx + c.
+$$
+Therefore every hypothesis in $\mathcal{H}_{\mathrm{quad}}$ can be written as
+$$
+h(x)
+=
+1[ax^2 + bx + c \ge 0]
+=
+1[\langle w,\phi(x)\rangle \ge 0].
+$$
+
+\subsubsection{VC-Dimension Upper Bound}
+
+Applying Problem 1 with $D=3$, we obtain
+$$
+\operatorname{VCdim}(\mathcal{H}_{\mathrm{quad}}) \le 3.
+$$
+
+\subsection{Problem 3}
+
+\subsubsection{Characterization}
+
+A binary labeling of $(x_1,\dots,x_n)$ is realizable by $\mathcal{H}_{\mathrm{quad}}$ if and only if it has at most two switches between consecutive sample points.
+
+Equivalently, it has one of the two forms
+$$
+0^a1^b0^c
+\qquad \text{or} \qquad
+1^a0^b1^c
+$$
+with $a,b,c \ge 0$.
+
+\subsubsection{Why Every Quadratic Pattern Has This Form}
+
+Let
+$$
+q(x) = ax^2 + bx + c
+$$
+be a nonzero quadratic polynomial, allowing the linear cases $a=0$.
+
+The set
+$$
+\{x : q(x) \ge 0\}
+$$
+can only have one of the following shapes:
+\begin{itemize}
+\item all of $\mathbb{R}$,
+\item the empty set,
+\item a single interval,
+\item the complement of a single open interval,
+\item a halfline.
+\end{itemize}
+
+Indeed, a nonzero quadratic has at most two real roots. If it has two distinct roots $r_1 < r_2$, then
+$$
+q(x) \ge 0
+$$
+either on
+$$
+(-\infty,r_1] \cup [r_2,\infty)
+$$
+when $a>0$, or on
+$$
+[r_1,r_2]
+$$
+when $a<0$. If there is at most one real root, we get a constant sign class, a halfline, or a singleton-type interval.
+
+Intersecting any of these shapes with the ordered sample can only produce a single block of $1$'s, or the complement of a single block of $0$'s. Therefore the labels can switch at most twice.
+
+\subsubsection{Why Every Such Pattern Is Realizable}
+
+Conversely, any pattern with at most two switches is realizable.
+
+\textbf{Zero switches.}
+The all-ones pattern is realized by
+$$
+q(x) = 1,
+$$
+and the all-zeros pattern is realized by
+$$
+q(x) = -1.
+$$
+
+\textbf{One switch.}
+Suppose the unique switch occurs in the gap between $x_i$ and $x_{i+1}$. Choose a root
+$$
+r \in (x_i,x_{i+1}).
+$$
+Then
+$$
+q(x) = x-r
+$$
+realizes the pattern
+$$
+0^i1^{n-i},
+$$
+while
+$$
+q(x) = r-x
+$$
+realizes
+$$
+1^i0^{n-i}.
+$$
+
+\textbf{Two switches.}
+Suppose the switches occur in gaps
+$$
+(x_i,x_{i+1})
+\qquad \text{and} \qquad
+(x_j,x_{j+1})
+$$
+with $i<j$. Choose roots
+$$
+r_1 \in (x_i,x_{i+1}),
+\qquad
+r_2 \in (x_j,x_{j+1}).
+$$
+Then
+$$
+q(x) = -(x-r_1)(x-r_2)
+$$
+is nonnegative exactly between the roots, so it realizes
+$$
+0^i1^{j-i}0^{n-j}.
+$$
+Similarly,
+$$
+q(x) = (x-r_1)(x-r_2)
+$$
+is nonnegative outside the roots, so it realizes
+$$
+1^i0^{j-i}1^{n-j}.
+$$
+
+\subsubsection{Conclusion}
+
+The exact restriction patterns of $\mathcal{H}_{\mathrm{quad}}$ on an ordered sample are precisely the binary strings with at most two switches.
+
+\subsection{Problem 4}
+
+\subsubsection{Exact Growth Function}
+
+There are $n-1$ internal gaps between consecutive sample points. To specify a pattern with at most two switches, we choose:
+\begin{itemize}
+\item the number $j \in \{0,1,2\}$ of switch gaps,
+\item the $j$ gaps where the switches occur,
+\item the starting label at $x_1$, which can be either $0$ or $1$.
+\end{itemize}
+
+Once these choices are made, the whole binary string is determined uniquely. Conversely, every realizable pattern has a unique starting label and unique switch set.
+
+Therefore
+$$
+\Gamma_{\mathcal{H}_{\mathrm{quad}}}(n)
+=
+2 \sum_{j=0}^2 \binom{n-1}{j}.
+$$
+
+Equivalently,
+$$
+\Gamma_{\mathcal{H}_{\mathrm{quad}}}(n)
+=
+2\left(1 + (n-1) + \binom{n-1}{2}\right)
+=
+n^2 - n + 2.
+$$
+
+\subsubsection{Exact VC Dimension}
+
+For $n=3$, every binary string of length $3$ has at most two switches, so every labeling of three ordered points is realizable. Hence
+$$
+\operatorname{VCdim}(\mathcal{H}_{\mathrm{quad}}) \ge 3.
+$$
+
+For $n=4$, the pattern
+$$
+0101
+$$
+has three switches, so it is not realizable. Therefore four points cannot be shattered, and
+$$
+\operatorname{VCdim}(\mathcal{H}_{\mathrm{quad}}) \le 3.
+$$
+
+Combining this with the upper bound from Problem 2,
+$$
+\operatorname{VCdim}(\mathcal{H}_{\mathrm{quad}}) = 3.
+$$
+
+\subsubsection{Comparison with Sauer--Shelah}
+
+Since $\operatorname{VCdim}(\mathcal{H}_{\mathrm{quad}})=3$, Sauer--Shelah gives
+$$
+\Gamma_{\mathcal{H}_{\mathrm{quad}}}(n)
+\le
+\sum_{k=0}^3 \binom{n}{k}.
+$$
+
+Our exact formula is only
+$$
+\Gamma_{\mathcal{H}_{\mathrm{quad}}}(n)
+=
+n^2 - n + 2.
+$$
+
+Moreover,
+$$
+\sum_{k=0}^3 \binom{n}{k} - (n^2-n+2)
+=
+\frac{(n-1)(n-2)(n-3)}{6},
+$$
+so the Sauer--Shelah bound is strictly larger for every $n \ge 4$.
+
+Thus the VC-based upper bound is not tight here. This shows that VC dimension is a coarse summary of finite-pool richness: it determines the shattering breakpoint and the polynomial growth exponent, but it does not determine the exact growth function.
+
+\subsection{Problem 5}
+
+\subsubsection{What Is Wrong with the AI Argument}
+
+Again, the final value of the VC dimension is correct, but the derivation is incomplete.
+
+\textbf{First problem:} after choosing the change-points, one must also choose the starting label. The same set of switch gaps can produce two different patterns. For example, with one chosen gap we can obtain either
+$$
+000111
+\qquad \text{or} \qquad
+111000.
+$$
+So the formula
+$$
+\sum_{j=0}^2 \binom{n-1}{j}
+$$
+misses a factor of $2$.
+
+\textbf{Second problem:} the root-count argument by itself gives only an upper bound. To derive the exact growth function, one must also prove that every binary string with at most two switches is actually realizable by some quadratic threshold. That constructive step is missing from the AI argument.
+
+\subsubsection{Correct Statement}
+
+The correct theorem is:
+
+\begin{quote}
+On an ordered $n$-point sample, the labelings realized by $\mathcal{H}_{\mathrm{quad}}$ are exactly the binary strings with at most two switches. Consequently,
+$$
+\Gamma_{\mathcal{H}_{\mathrm{quad}}}(n)
+=
+2 \sum_{j=0}^2 \binom{n-1}{j}
+=
+n^2 - n + 2,
+$$
+and
+$$
+\operatorname{VCdim}(\mathcal{H}_{\mathrm{quad}}) = 3.
+$$
+\end{quote}
+
+\subsubsection{Why This Correct Statement Is Justified}
+
+Problem 3 proved the exact pattern characterization using the algebraic structure of a quadratic polynomial together with explicit constructions. Problem 4 then counted those patterns exactly and derived the exact VC dimension. So the corrected theorem is fully supported by the work above.
+
+\newpage
+\section{Part C: AI Usage Report}
+
+(I did not use AI for this part.)
+
+In this assignment there is nothing to change in the AI workflow, since the problems are close to what we learned in class and the AI's initial answers are mostly correct.
+
+And to my understanding, math ai like codex are pretty good at solving problems, given a well structured preliminary like the slides. The distribution is not so far away here, and most likely they already have seen similar problems before.
+
+For built skills, see `AGENTS.md'.
+\end{document}

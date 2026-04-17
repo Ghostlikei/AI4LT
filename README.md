@@ -45,6 +45,7 @@ The tracked Conda dependencies live in `environment.yml`. Current core tools:
 - `numpy` for numerical work
 - `matplotlib` for plots and experiment figures
 - `ipykernel` for notebook support
+- `pypdf` for extracting assignment and slide text into reusable statement files
 - `pip`
 
 Non-Conda repo tools:

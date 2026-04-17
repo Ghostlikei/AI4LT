@@ -1,0 +1,199 @@
+\documentclass{article}
+
+\usepackage[english]{babel}
+\usepackage[letterpaper,top=2cm,bottom=2cm,left=3cm,right=3cm]{geometry}
+\usepackage{amsmath,amssymb}
+\setlength{\parindent}{0pt}
+
+\title{DSC 190/291: Learning Theory through Formal Proof and Proof Presentation\\Assignment 2}
+\date{UCSD, Spring 2026}
+
+\begin{document}
+\maketitle
+
+\section{Overview}
+
+This assignment has two technical parts plus an AI usage report:
+\begin{itemize}
+\item Part A: unions of two intervals on the line.
+\item Part B: quadratic threshold functions on the line.
+\item Part C: AI usage report.
+\end{itemize}
+
+\section{Part A: Unions of Two Intervals on the Line (40 points)}
+
+Let
+$$
+\mathcal{H}_2
+=
+\{x \mapsto 1[x \in I_1 \cup I_2] : I_1, I_2 \subseteq \mathbb{R} \text{ are intervals}\}.
+$$
+In other words, a hypothesis in $\mathcal{H}_2$ labels a point by $1$ iff it lies in a union of at most two intervals on the real line. Empty intervals are allowed, so this really means ``at most two.''
+
+Throughout this part, fix ordered points
+$$
+x_1 < x_2 < \cdots < x_n.
+$$
+
+\begin{enumerate}
+\item \textbf{Restriction patterns.}
+
+Characterize exactly which binary labelings of $(x_1,\dots,x_n)$ can be realized by $\mathcal{H}_2$.
+A good answer should not just list examples. It should identify the structural property that distinguishes realizable labelings from impossible ones.
+
+\item \textbf{Exact growth function.}
+
+Use your characterization to derive a closed-form formula for the growth function
+$$
+\Gamma_{\mathcal{H}_2}(n).
+$$
+You may first use small cases to guess the formula, but your final answer must be a proof.
+
+\item \textbf{VC dimension and mistake bound.}
+
+Determine the exact value of
+$$
+\operatorname{VCdim}(\mathcal{H}_2).
+$$
+Then use your exact growth formula to write down the Halving mistake bound on an $n$-point pool in the realizable online transductive setting.
+
+Finally, compare your exact growth formula with the Sauer--Shelah bound obtained from your VC-dimension calculation. Are they equal in this case? What does this tell you about when a VC-dimension-based upper bound can be tight?
+
+\item \textbf{Tightness of Sauer--Shelah.}
+
+For arbitrary integers $n \ge d \ge 0$, give a concrete hypothesis class $\mathcal{H}$ on some domain $\mathcal{X}$ such that
+$$
+\operatorname{VCdim}(\mathcal{H}) = d
+$$
+and
+$$
+\Gamma_{\mathcal{H}}(n) = \sum_{k=0}^d \binom{n}{k}.
+$$
+What does your example show about the Sauer--Shelah bound?
+
+\item \textbf{AI proof audit.}
+
+An AI assistant claims:
+
+\begin{quote}
+On an ordered $n$-point sample, a labeling realized by $\mathcal{H}_2$ is determined by the places where the labels switch between $0$ and $1$. Since a union of at most two intervals can create at most four such switches, one just chooses up to four switch locations among the $n$ sample positions. Therefore
+$$
+\sum_{j=0}^4 \binom{n}{j}.
+$$
+Hence
+$$
+\Gamma_{\mathcal{H}_2}(n) = \sum_{j=0}^4 \binom{n}{j},
+$$
+and in particular
+$$
+\operatorname{VCdim}(\mathcal{H}_2) = 4.
+$$
+\end{quote}
+
+A flawed argument may still arrive at a true conclusion; analyze the reasoning, not just the final claim.
+
+Explain carefully what is incomplete or incorrect in this argument. Then replace it with a correct statement that is actually supported by your work above.
+\end{enumerate}
+
+\section{Part B: Quadratic Threshold Functions on the Line (45 points)}
+
+Let
+$$
+\mathcal{H}_{\mathrm{quad}}
+=
+\{x \mapsto 1[ax^2 + bx + c \ge 0] : (a,b,c) \in \mathbb{R}^3,\ (a,b,c) \ne (0,0,0)\}.
+$$
+So a hypothesis in $\mathcal{H}_{\mathrm{quad}}$ is the indicator of the nonnegative region of a quadratic polynomial.
+
+Throughout this part, again fix ordered points
+$$
+x_1 < x_2 < \cdots < x_n.
+$$
+
+\begin{enumerate}
+\item \textbf{A general upper-bound trick.}
+
+Prove the following statement.
+
+If there exist an integer $D \ge 1$ and a transformation
+$$
+\phi : \mathcal{X} \to \mathbb{R}^D
+$$
+such that every hypothesis $h \in \mathcal{H}$ can be written in the form
+$$
+h(x) = 1[\langle w, \phi(x) \rangle \ge 0]
+$$
+for some vector $w \in \mathbb{R}^D$, then
+$$
+\operatorname{VCdim}(\mathcal{H}) \le D.
+$$
+You may use the Week 2 result that homogeneous halfspaces in $\mathbb{R}^D$ have VC dimension $D$.
+
+\item \textbf{Apply the trick to quadratic thresholds.}
+
+Find an explicit transformation
+$$
+\phi : \mathbb{R} \to \mathbb{R}^3
+$$
+such that every hypothesis in $\mathcal{H}_{\mathrm{quad}}$ can be written in the form
+$$
+h(x) = 1[\langle w, \phi(x) \rangle \ge 0]
+$$
+for some $w \in \mathbb{R}^3$.
+
+Then use the previous item to prove an upper bound on
+$$
+\operatorname{VCdim}(\mathcal{H}_{\mathrm{quad}}).
+$$
+
+\item \textbf{Exact restriction patterns.}
+
+Characterize exactly which binary labelings of $(x_1,\dots,x_n)$ are realizable by $\mathcal{H}_{\mathrm{quad}}$.
+Your characterization should make clear how the algebraic structure of a quadratic polynomial controls the combinatorics of its restriction to an ordered finite set.
+
+\item \textbf{Exact growth and exact VC dimension.}
+
+Use your characterization to compute the exact growth function
+$$
+\Gamma_{\mathcal{H}_{\mathrm{quad}}}(n)
+$$
+and the exact VC dimension of $\mathcal{H}_{\mathrm{quad}}$.
+
+Then compare your exact growth formula with the Sauer--Shelah bound obtained from your VC-dimension calculation. Is the VC-based upper bound tight here? Explain what your answer says about VC dimension as a summary of finite-pool richness.
+
+\item \textbf{AI proof audit.}
+
+An AI assistant claims:
+
+\begin{quote}
+A quadratic polynomial has at most two real roots, so on an ordered sample its labels can change from $0$ to $1$ or from $1$ to $0$ at most twice. Therefore one chooses up to two change-points among the $n-1$ gaps and gets
+$$
+\Gamma_{\mathcal{H}_{\mathrm{quad}}}(n)
+=
+\sum_{j=0}^2 \binom{n-1}{j}.
+$$
+In particular,
+$$
+\operatorname{VCdim}(\mathcal{H}_{\mathrm{quad}}) = 3.
+$$
+\end{quote}
+
+A flawed argument may still arrive at a true conclusion; analyze the reasoning, not just the final claim.
+
+Explain carefully what is incomplete or incorrect in this argument. Then replace it with a correct theorem that is genuinely justified by your work in this part.
+\end{enumerate}
+
+\section{Part C: AI Usage Report (15 points)}
+
+Write a short report describing how you used AI in this assignment. Do not just list tools; explain what role AI played in your work and how you checked the result. Address:
+\begin{enumerate}
+\item Describe the parts of the assignment for which you used AI.
+\item Describe concrete AI suggestions you accepted and explain why.
+\item Describe concrete AI suggestions you rejected or substantially modified, and explain what was wrong, incomplete, or unhelpful about them.
+\item Describe how you verified the correctness of what you submitted.
+\item Describe concrete updates to your AI workflow that resulted from this assignment.
+\end{enumerate}
+
+If you did not use AI for some part of the assignment, say so explicitly.
+
+\end{document}

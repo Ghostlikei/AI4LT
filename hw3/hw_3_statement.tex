@@ -1,0 +1,66 @@
+\documentclass{article}
+
+\usepackage[english]{babel}
+\usepackage[letterpaper,top=2cm,bottom=2cm,left=3cm,right=3cm]{geometry}
+\usepackage{amsmath,amssymb}
+\setlength{\parindent}{0pt}
+
+\title{DSC 190/291: Learning Theory through Formal Proof and Proof Presentation\\Assignment 3}
+\date{UCSD, Spring 2026}
+
+\begin{document}
+\maketitle
+
+\section{Overview}
+
+This assignment has one large technical mini-course, one theorem/comparison part, and an AI usage report:
+\begin{itemize}
+\item Part A: a mini-course on concentration inequalities.
+\item Part B: the No-Free-Lunch theorem and the Fundamental Theorem of PAC learning.
+\item Part C: AI usage report.
+\end{itemize}
+
+\section{Part A: A Mini-Course on Concentration Inequalities (65 points)}
+
+In the Week 3 lecture we proved the following i.i.d. growth-function ERM guarantee. Let
+$$
+\widehat{h} \in \arg\min_{h \in \mathcal{H}} L_n(h).
+$$
+Then with high probability over $S \sim \mathcal{D}^n$,
+$$
+L_{\mathcal{D}}(\widehat{h})
+\le
+\inf_{h \in \mathcal{H}} L_{\mathcal{D}}(h)
++ O\!\left(
+\sqrt{\frac{\log \Gamma_{\mathcal{H}}(2n) + \log(1/\delta)}{n}}
+\right).
+$$
+
+The learning-theoretic structure of the proof was covered in lecture, but several concentration inequalities were used without proof. The inequalities to learn in this mini-course are:
+\begin{itemize}
+\item Hoeffding's inequality,
+\item Hoeffding's inequality for sampling without replacement,
+\item McDiarmid's inequality,
+\item Bernstein's inequality.
+\end{itemize}
+
+Create a short mini-course that teaches these four concentration inequalities well enough to complete the Week 3 ERM proof end-to-end. The mini-course should be one coherent document written so that someone unfamiliar with the material could learn from it. Organize it in roughly the following order:
+\begin{enumerate}
+\item The concept of concentration.
+\item The common technique.
+\item Statements, assumptions, and consequences.
+\item Proofs.
+\item Connection to the Week 3 ERM proof.
+\end{enumerate}
+
+Provide detailed references for all results you used, and make sure everything can be checked against those references.
+
+\section{Part B: The No-Free-Lunch Theorem and the Fundamental Theorem (20 points)}
+
+In this part you will prove the i.i.d. No-Free-Lunch theorem, use it to prove the lower-bound direction of the Fundamental Theorem of PAC learning, construct an explicit bad example for a learning rule of your choice, and compare the Week 1 and Week 3 NFL theorems.
+
+\section{Part C: AI Usage Report (15 points)}
+
+Write a short report describing how you used AI in this assignment, including concrete accepted suggestions, rejected suggestions, verification steps, and the five most recent changes you made to your AI workflow.
+
+\end{document}

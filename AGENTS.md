@@ -224,6 +224,72 @@ Compile a homework LaTeX file to PDF without changing the content.
 - `/lt-compile-pdf Rebuild hw1/hw1.tex after my edits.`
 - `/lt-compile-pdf Check whether hw1.tex compiles cleanly.`
 
+## Sample Skill: `theorm-ref`
+
+### Purpose
+
+Write theorem-heavy learning theory notes or mini-courses in LaTeX with explicit theorem statements, consistent notation, cross-references, and checkable source citations.
+
+### Use When
+
+- write a theorem reference section for a homework or mini-course
+- explain a theorem with statement, proof sketch, full proof, and proof tricks
+- unify notation across several concentration inequalities or related results
+- add source-backed theorem citations and labels to a LaTeX writeup
+
+### Inputs
+
+Expect some or all of the following:
+
+- a homework prompt such as `AI4LT/hw3/hw_3.pdf`
+- course slides or lecture notes
+- a list of theorems to cover
+- a request for proof sketch, full proof, or comparison between theorems
+- external papers or websites to cite
+
+### Workflow
+
+1. Verify that the Conda environment `ai4lt` is active. If not, activate it first.
+2. Verify that `pdflatex` is available. If not, run `bash scripts/setup_pdflatex.sh` from the repo root.
+3. Read the relevant homework statement and any referenced local lecture slides before drafting.
+4. Find source references for each theorem. Prefer primary sources when practical; otherwise use an authoritative website or standard notes and say so.
+5. In LaTeX, state each theorem in a theorem-like environment with both a `\label{...}` and a source citation such as `\cite{...}` in the theorem title or surrounding text.
+6. Keep notation unified across the whole writeup. For concentration inequalities, prefer reusing symbols like `X_1,\dots,X_n`, `\mu`, `S_n`, `\overline{X}_n`, `V_n`, and `b` unless the homework statement forces different notation.
+7. For each theorem, write:
+   - what quantity is random,
+   - what assumptions are needed,
+   - what the tail bound says,
+   - a proof sketch,
+   - the proof details,
+   - the key proof trick or reusable template.
+8. When a proof imports an intermediate result from a cited source, name that imported result explicitly instead of pretending it was proved from scratch.
+9. End with a short comparison section explaining how the theorems differ in assumptions, strength, and typical use.
+
+### Output Format
+
+Unless the user asks for something else, respond in this order:
+
+1. `Notation and setup`
+2. `Theorem statements`
+3. `Proof sketches`
+4. `Full proofs`
+5. `Proof tricks / comparisons`
+6. `References used`
+
+### Style Rules
+
+- Use theorem environments, labels, and citations directly in the LaTeX.
+- Keep notation consistent across all theorems in the same document.
+- Distinguish clearly between a proof sketch and a complete proof.
+- Be rigorous: if a step relies on a cited lemma or known comparison theorem, say exactly where it enters.
+- Prefer source-backed statements over uncited folklore formulations.
+
+### Example Prompts
+
+- `/theorm-ref Write the concentration-inequality mini-course for AI4LT/hw3 part a.`
+- `/theorm-ref State Hoeffding, McDiarmid, and Bernstein in LaTeX with citations and proof sketches.`
+- `/theorm-ref Turn these theorem notes into a cited, cross-referenced section for the homework.`
+
 ## Template For New Skills
 
 Copy this block and edit it when you want to add another skill:

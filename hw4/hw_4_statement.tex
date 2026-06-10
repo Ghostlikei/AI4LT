@@ -1,0 +1,253 @@
+\documentclass{article}
+
+\usepackage[english]{babel}
+\usepackage[letterpaper,top=2cm,bottom=2cm,left=3cm,right=3cm]{geometry}
+\usepackage{amsmath,amssymb}
+\setlength{\parindent}{0pt}
+
+\title{DSC 190/291: Learning Theory through Formal Proof and Proof Presentation\\Assignment 4}
+\date{UCSD, Spring 2026}
+
+\begin{document}
+\maketitle
+
+\section{Overview}
+
+This assignment has three parts:
+\begin{itemize}
+\item Part A: sparse linear predictors and model selection.
+\item Part B: PAC-Bayes for thresholds.
+\item Part C: AI usage report.
+\end{itemize}
+
+\section{Part A: Sparse Linear Predictors and Model Selection (40 points)}
+
+Let
+$$
+\mathcal{X} = \mathbb{R}^d,
+\qquad
+\mathcal{Y} = \{-1,+1\},
+$$
+and use the convention
+$$
+\operatorname{sign}(z) =
+\begin{cases}
++1, & z \ge 0,\\
+-1, & z < 0.
+\end{cases}
+$$
+For $1 \le k \le d$, define
+$$
+\mathcal{H}_k
+=
+\left\{
+x \mapsto \operatorname{sign}(\langle w,x\rangle)
+:
+w \in \mathbb{R}^d,\ \|w\|_0 \le k
+\right\}.
+$$
+Let
+$$
+\mathcal{H} = \bigcup_{k=1}^d \mathcal{H}_k.
+$$
+Let $\mathcal{D}$ be any distribution over $\mathcal{X}\times\mathcal{Y}$, and let
+$$
+S=((x_1,y_1),\dots,(x_n,y_n)) \sim \mathcal{D}^n.
+$$
+When a weight vector $w$ is used inside $L_S$ or $L_{\mathcal{D}}$, it denotes the classifier
+$x \mapsto \operatorname{sign}(\langle w,x\rangle)$.
+
+\begin{enumerate}
+\item Prove an upper bound of the form
+$$
+\operatorname{VCdim}(\mathcal{H}_k)
+=
+O\!\left(k\log\!\left(\frac{ed}{k}\right)\right).
+$$
+Hint: write $\mathcal{H}_k$ as a union over the possible supports of $w$, then combine growth-function bounds for those subclasses.
+
+\item Choose a prior $p_k>0$ over sparsity levels $k=1,\dots,d$ with $\sum_{k=1}^d p_k \le 1$; for example, $p_k \propto 1/k^2$. Define an SRM rule
+$$
+\widehat{h}
+\in
+\arg\min_{1\le k\le d,\ h\in\mathcal{H}_k}
+\left\{
+L_S(h) + \operatorname{pen}(k,n,\delta)
+\right\}.
+$$
+Derive a high-probability oracle inequality of the form
+$$
+L_{\mathcal{D}}(\widehat{h})
+\le
+\inf_{1\le k\le d,\ h\in\mathcal{H}_k}
+\left\{
+L_{\mathcal{D}}(h)
++
+C\sqrt{
+\frac{
+k\log(ed/k)+\log(1/p_k)+\log(1/\delta)
+}{n}
+}
+\right\}.
+$$
+You may use the class-level SRM theorem from lecture, but you should instantiate all terms and explain what statistical cost is paid for choosing the support and what cost is paid for choosing the sparsity level.
+
+\item Suppose there exists $w^* \in \mathbb{R}^d$ with $\|w^*\|_0 \le s$ and $L_{\mathcal{D}}(w^*) \le \eta$. Use the SRM bound above to state a sample size sufficient to guarantee
+$$
+L_{\mathcal{D}}(\widehat{h}) \le \eta + \varepsilon
+$$
+with probability at least $1-\delta$. Compare this with learning over all homogeneous halfspaces in $\mathbb{R}^d$. In what regime is the sparse bound smaller?
+
+\item Assume $n$ is even and split the sample into two equal parts $S_1$ and $S_2$. For each $k=1,\dots,d$, let
+$$
+w_k \in \arg\min_{\|w\|_0 \le k} L_{S_1}(w).
+$$
+Then choose
+$$
+\widehat{k} \in \arg\min_{1\le k\le d} L_{S_2}(w_k),
+$$
+and output $w_{\widehat{k}}$. Prove a validation-style oracle bound of the form
+$$
+L_{\mathcal{D}}(w_{\widehat{k}})
+\le
+\inf_{1\le k\le d,\ \|w\|_0 \le k}
+\left\{
+L_{\mathcal{D}}(w)
++
+C\sqrt{
+\frac{
+k\log(ed/k)+\log(d/\delta)
+}{n}
+}
+\right\}.
+$$
+Hint: after conditioning on $S_1$, the validation step is a finite-class selection problem over the candidates $w_1,\dots,w_d$.
+
+Then compare this validation rule to the penalty-based SRM rule: what samples are used to fit predictors, what samples are used to choose the complexity level, and what statistical price is paid for that separation?
+
+\item Restrict now to the realizable case. Suppose the sample is consistent with some $k$-sparse homogeneous halfspace. Describe the brute-force algorithm that enumerates supports $I \subseteq [d]$ with $|I|=k$ and solves a halfspace feasibility problem on each support. Estimate its runtime as a function of $d$, $k$, and $n$. In which regimes of $k$ is this polynomial in $d$? Explain how this illustrates the Week 4 distinction between sample complexity and computational complexity.
+\end{enumerate}
+
+\section{Part B: PAC-Bayes for Thresholds (45 points)}
+
+Let
+$$
+\mathcal{X}_N = \{1,2,\dots,N\},
+\qquad
+\mathcal{Y} = \{0,1\},
+$$
+and define the threshold class
+$$
+\mathcal{H}_N = \{h_t : t \in \{1,\dots,N+1\}\},
+\qquad
+h_t(x)=\mathbf{1}[x\ge t].
+$$
+Thus $h_1$ labels every point by $1$, while $h_{N+1}$ labels every point by $0$.
+
+Use the PAC-Bayes bound from lecture: for any distribution $\mathcal{D}$ over $\mathcal{X}_N\times\mathcal{Y}$ and any prior $P$, with probability at least $1-\delta$ over
+$$
+S=((x_1,y_1),\dots,(x_n,y_n)) \sim \mathcal{D}^n,
+$$
+simultaneously for all posteriors $Q$,
+$$
+L_{\mathcal{D}}(Q)
+\le
+L_S(Q)
++
+\sqrt{
+\frac{
+\operatorname{KL}(Q\Vert P)+\log(2n/\delta)
+}{
+2(n-1)
+}
+}.
+$$
+Here
+$$
+L_{\mathcal{D}}(Q) = \mathbb{E}_{h\sim Q}[L_{\mathcal{D}}(h)],
+\qquad
+L_S(Q) = \mathbb{E}_{h\sim Q}[L_S(h)].
+$$
+Work in the realizable setting.
+
+\begin{enumerate}
+\item Prove that
+$$
+\operatorname{VCdim}(\mathcal{H}_N)=1.
+$$
+Let $P$ be the uniform prior over $\mathcal{H}_N$, let $A(S)$ be any deterministic ERM rule that returns a consistent threshold $\widehat{h}_t$, and define
+$$
+Q_S = \delta_{\widehat{h}_t}.
+$$
+Compute $\operatorname{KL}(Q_S\Vert P)$, plug it into the PAC-Bayes theorem, and state the resulting bound on $L_{\mathcal{D}}(Q_S)$. Then explain briefly why this PAC-Bayes certificate scales with $\log(N+1)$ even though a VC-style realizable guarantee for thresholds should not scale with $\log N$.
+
+\item Define
+$$
+a(S)=\max\{x_i : y_i=0\},
+\qquad
+b(S)=\min\{x_i : y_i=1\},
+$$
+with the conventions $a(S)=0$ when there are no negative examples and $b(S)=N+1$ when there are no positive examples. Prove that the version space is
+$$
+V(S)=\{t : a(S) < t \le b(S)\},
+$$
+so
+$$
+|V(S)|=b(S)-a(S).
+$$
+Let $Q_V$ be the uniform posterior over $\{h_t : t\in V(S)\}$. For the uniform prior $P$ over $\mathcal{H}_N$, compute $\operatorname{KL}(Q_V\Vert P)$ exactly. Prove that $L_S(Q_V)=0$, and explain why $Q_V$ can give a better PAC-Bayes bound than a point posterior when $|V(S)|$ is large.
+
+\item Let $P$ be the uniform prior over $\mathcal{H}_N$. Let $\mathcal{D}$ be the realizable distribution whose marginal on $\mathcal{X}_N$ is uniform and whose labels are generated by $h_\tau$. For any nonempty set $W \subseteq \{1,\dots,N+1\}$, let $Q_W$ be uniform over $\{h_t : t\in W\}$. Prove that
+$$
+L_{\mathcal{D}}(Q_W)
+=
+\frac{1}{N|W|}
+\sum_{t\in W}|t-\tau|.
+$$
+Construct a concrete example with $N\ge 20$, a true threshold $\tau$, and a realizable sample $S$ such that $|V(S)|$ is large,
+$$
+\operatorname{KL}(Q_{V(S)}\Vert P) < \operatorname{KL}(\delta_{h_\tau}\Vert P),
+$$
+but
+$$
+L_{\mathcal{D}}(Q_{V(S)}) > L_{\mathcal{D}}(\delta_{h_\tau}).
+$$
+Explain why this does not contradict PAC-Bayes.
+
+\item Let $P$ be any prior over $\mathcal{H}_N$, fixed before the sample, and assume $N\ge 3$. Prove that there exists an internal threshold $\tau \in \{2,\dots,N\}$ such that
+$$
+P(h_\tau) \le \frac{1}{N-1}.
+$$
+For this $\tau$, define the realizable distribution $\mathcal{D}_\tau$ by
+$$
+\mathbb{P}_{(x,y)\sim\mathcal{D}_\tau}[x=\tau-1,y=0]=\frac12,
+\qquad
+\mathbb{P}_{(x,y)\sim\mathcal{D}_\tau}[x=\tau,y=1]=\frac12.
+$$
+Prove that with probability at least $1-2^{1-n}$ over $S\sim\mathcal{D}_\tau^n$, the sample contains both support points. On this event, prove that
+$$
+V(S)=\{\tau\}.
+$$
+Conclude that any posterior $Q$ with $L_S(Q)=0$ must be
+$$
+Q=\delta_{h_\tau},
+$$
+and therefore
+$$
+\operatorname{KL}(Q\Vert P)\ge \log(N-1).
+$$
+Explain what this lower bound does and does not show.
+\end{enumerate}
+
+\section{Part C: AI Usage Report (15 points)}
+
+Write a short report describing how you used AI in this assignment. Explain:
+\begin{enumerate}
+\item which parts of the assignment used AI,
+\item concrete suggestions you accepted,
+\item concrete suggestions you rejected or modified,
+\item how you verified the submitted proof and exposition,
+\item the five most recent changes you made to your AI workflow and why.
+\end{enumerate}
+
+\end{document}

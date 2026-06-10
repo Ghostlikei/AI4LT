@@ -1,0 +1,826 @@
+\documentclass{article}
+
+\usepackage[english]{babel}
+\usepackage[letterpaper,top=2cm,bottom=2cm,left=3cm,right=3cm,marginparwidth=1.75cm]{geometry}
+\setlength{\parindent}{0pt}
+
+\usepackage{amsmath}
+\usepackage{amsthm}
+\usepackage{amssymb}
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage{listings}
+\usepackage[colorlinks=true, allcolors=blue]{hyperref}
+\usepackage{xcolor}
+
+\lstset{
+  basicstyle=\ttfamily\small,
+  numbers=left,
+  numberstyle=\tiny,
+  stepnumber=1,
+  numbersep=8pt,
+  backgroundcolor=\color{gray!10},
+  frame=single,
+  rulecolor=\color{gray!60},
+  tabsize=2,
+  captionpos=b,
+  breaklines=true,
+  breakatwhitespace=true,
+  showstringspaces=false,
+  keywordstyle=\color{blue},
+  commentstyle=\color{green!50!black},
+  stringstyle=\color{orange},
+}
+
+\DeclareMathOperator{\VC}{VCdim}
+\DeclareMathOperator{\KL}{KL}
+\DeclareMathOperator{\supp}{supp}
+\DeclareMathOperator{\sign}{sign}
+\DeclareMathOperator*{\argmin}{arg\,min}
+
+\newcommand{\EE}{\mathbb{E}}
+\newcommand{\PP}{\mathbb{P}}
+\newcommand{\cH}{\mathcal{H}}
+\newcommand{\cD}{\mathcal{D}}
+\newcommand{\cX}{\mathcal{X}}
+
+\title{DSC 291: Learning Theory Assignment 4}
+\author{Tongle Shen}
+
+\begin{document}
+\maketitle
+
+\section{Part A: Sparse Linear Predictors and Model Selection}
+
+\subsection{Problem 1. VC Dimension Through Supports}
+
+For each support set $I \subseteq [d]$ with $|I|=k$, define
+$$
+\cH_I
+=
+\left\{
+x \mapsto \sign(\langle w,x\rangle)
+:
+\supp(w)\subseteq I
+\right\}.
+$$
+Then every $k$-sparse predictor belongs to $\cH_I$ for some $I$ of size $k$, so
+$$
+\cH_k = \bigcup_{|I|=k} \cH_I.
+$$
+
+Fix such an $I$. After restricting to the coordinates in $I$, the class $\cH_I$ is just the class of homogeneous halfspaces in $\mathbb{R}^k$, so
+$$
+\VC(\cH_I) \le k.
+$$
+Hence, for every $n\ge k$, Sauer--Shelah gives
+$$
+\Gamma_{\cH_I}(n)
+\le
+\sum_{j=0}^k \binom{n}{j}
+\le
+\left(\frac{en}{k}\right)^k.
+$$
+
+There are $\binom{d}{k}$ possible supports, so
+$$
+\Gamma_{\cH_k}(n)
+\le
+\binom{d}{k}\left(\frac{en}{k}\right)^k
+\le
+\left(\frac{ed}{k}\right)^k \left(\frac{en}{k}\right)^k.
+$$
+
+Now let $m=\VC(\cH_k)$. If $\cH_k$ shatters $m$ points, then
+$$
+2^m \le \Gamma_{\cH_k}(m).
+$$
+Also $\cH_k$ is a subclass of all homogeneous halfspaces in $\mathbb{R}^d$, and that larger class has VC dimension $d$, so $m\le d$. Therefore
+$$
+2^m
+\le
+\left(\frac{ed}{k}\right)^k \left(\frac{em}{k}\right)^k
+\le
+\left(\frac{ed}{k}\right)^{2k}.
+$$
+Taking logarithms,
+$$
+m\log 2 \le 2k \log\!\left(\frac{ed}{k}\right).
+$$
+So
+$$
+\VC(\cH_k)
+\le
+\frac{2}{\log 2}\,k\log\!\left(\frac{ed}{k}\right)
+=
+O\!\left(k\log\!\left(\frac{ed}{k}\right)\right).
+$$
+
+This is the desired upper bound.
+
+\subsection{Problem 2. Penalty-Based SRM}
+
+Choose, for example,
+$$
+p_k = \frac{6}{\pi^2 k^2},
+\qquad
+k=1,\dots,d.
+$$
+Then $\sum_{k=1}^d p_k \le 1$.
+
+Let $C_{\mathrm{SRM}}$ be the universal constant from the class-level SRM theorem in the Week 4 lecture. That theorem says that with probability at least $1-\delta$, simultaneously for every $k$ and every $h\in\cH_k$,
+$$
+\left|L_{\cD}(h)-L_S(h)\right|
+\le
+C_{\mathrm{SRM}}
+\sqrt{
+\frac{
+\VC(\cH_k)+\log(1/p_k)+\log(1/\delta)
+}{n}
+}.
+$$
+Using Problem 1 and enlarging the constant if necessary, there is a universal $C>0$ such that on the same event,
+$$
+\left|L_{\cD}(h)-L_S(h)\right|
+\le
+C
+\sqrt{
+\frac{
+k\log(ed/k)+\log(1/p_k)+\log(1/\delta)
+}{n}
+}.
+$$
+
+Define
+$$
+\operatorname{pen}(k,n,\delta)
+:=
+C
+\sqrt{
+\frac{
+k\log(ed/k)+\log(1/p_k)+\log(1/\delta)
+}{n}
+}
+$$
+and choose
+$$
+\widehat{h}
+\in
+\argmin_{1\le k\le d,\ h\in\cH_k}
+\left\{
+L_S(h)+\operatorname{pen}(k,n,\delta)
+\right\}.
+$$
+
+On the high-probability event above, for every $k$ and every $h\in\cH_k$,
+\begin{align*}
+L_{\cD}(\widehat{h})
+&\le
+L_S(\widehat{h})+\operatorname{pen}(\widehat{k},n,\delta) \\
+&\le
+L_S(h)+\operatorname{pen}(k,n,\delta) \\
+&\le
+L_{\cD}(h)+2\operatorname{pen}(k,n,\delta).
+\end{align*}
+Taking the infimum over all $k$ and $h\in\cH_k$ gives
+$$
+L_{\cD}(\widehat{h})
+\le
+\inf_{1\le k\le d,\ h\in\cH_k}
+\left\{
+L_{\cD}(h)+2\operatorname{pen}(k,n,\delta)
+\right\}.
+$$
+Absorbing the factor $2$ into the universal constant, we obtain the oracle inequality
+$$
+L_{\cD}(\widehat{h})
+\le
+\inf_{1\le k\le d,\ h\in\cH_k}
+\left\{
+L_{\cD}(h)
++
+C
+\sqrt{
+\frac{
+k\log(ed/k)+\log(1/p_k)+\log(1/\delta)
+}{n}
+}
+\right\}.
+$$
+
+\subsubsection{Interpretation of the Penalty}
+
+\textbf{Support-selection cost.}
+The term $k\log(ed/k)$ is the within-class statistical cost of searching over a $k$-dimensional separator and over the $\binom{d}{k}$ possible coordinate supports. This is the price of not knowing in advance which features matter.
+
+\textbf{Sparsity-level cost.}
+The term $\log(1/p_k)$ is the across-class cost for allowing the learner to choose the complexity level $k$ after seeing the data. If we take $p_k \propto 1/k^2$, then this cost is only $O(\log k)$.
+
+\subsection{Problem 3. Comparison with Dense Halfspaces}
+
+Assume there exists $w^* \in \mathbb{R}^d$ with $\|w^*\|_0 \le s$ and
+$$
+L_{\cD}(w^*) \le \eta.
+$$
+Applying the oracle inequality from Problem 2 with $k=s$ and $h=w^*$ yields, with probability at least $1-\delta$,
+$$
+L_{\cD}(\widehat{h})
+\le
+\eta
++
+C
+\sqrt{
+\frac{
+s\log(ed/s)+\log(1/p_s)+\log(1/\delta)
+}{n}
+}.
+$$
+
+Therefore it is sufficient to take
+$$
+n
+\ge
+C'
+\frac{
+s\log(ed/s)+\log(1/p_s)+\log(1/\delta)
+}{
+\varepsilon^2
+}
+$$
+for a universal constant $C'$, because then
+$$
+L_{\cD}(\widehat{h}) \le \eta+\varepsilon
+$$
+with probability at least $1-\delta$.
+
+For comparison, if we learn over all homogeneous halfspaces in $\mathbb{R}^d$, then $\VC= d$, so the standard VC bound gives sample size
+$$
+n_{\mathrm{dense}}
+=
+O\!\left(
+\frac{d+\log(1/\delta)}{\varepsilon^2}
+\right).
+$$
+
+The sparse bound is smaller when
+$$
+s\log(ed/s)+\log(1/p_s) \ll d.
+$$
+With the concrete choice $p_k \propto 1/k^2$, this is essentially the regime
+$$
+s\log(ed/s) \ll d.
+$$
+So SRM helps exactly when the target is much sparser than the ambient dimension.
+
+\subsection{Problem 4. Validation as Model Selection}
+
+Write $m=n/2$. For each $k=1,\dots,d$, let
+$$
+w_k \in \argmin_{\|w\|_0\le k} L_{S_1}(w),
+$$
+and let
+$$
+\widehat{k}\in\argmin_{1\le k\le d} L_{S_2}(w_k).
+$$
+I denote the selected predictor by $w_{\widehat{k}}$.
+
+\subsubsection{Step 1: Control the Predictors Trained on S1}
+
+For each fixed $k$, $w_k$ is an ERM over $\cH_k$ based on the sample $S_1$ of size $m$. Since
+$$
+\VC(\cH_k)=O\!\left(k\log\!\left(\frac{ed}{k}\right)\right),
+$$
+the Week 3 ERM guarantee gives the following: for some universal constant $C_1$, with probability at least $1-\delta/(2d)$,
+$$
+L_{\cD}(w_k)
+\le
+\inf_{\|w\|_0\le k} L_{\cD}(w)
++
+C_1
+\sqrt{
+\frac{
+k\log(ed/k)+\log(2d/\delta)
+}{m}
+}.
+$$
+Applying a union bound over $k=1,\dots,d$, with probability at least $1-\delta/2$ we have simultaneously for all $k$:
+$$
+L_{\cD}(w_k)
+\le
+\inf_{\|w\|_0\le k} L_{\cD}(w)
++
+\alpha_k,
+$$
+where
+$$
+\alpha_k
+:=
+C_1
+\sqrt{
+\frac{
+k\log(ed/k)+\log(2d/\delta)
+}{m}
+}.
+$$
+
+\subsubsection{Step 2: Use S2 to Compare the d Candidates}
+
+Now condition on $S_1$. Then the candidates $w_1,\dots,w_d$ are fixed predictors, and $S_2$ is an independent sample of size $m$.
+
+By Hoeffding's inequality plus a union bound over the $d$ fixed candidates, with probability at least $1-\delta/2$,
+$$
+\left|L_{\cD}(w_k)-L_{S_2}(w_k)\right|
+\le
+\beta
+\qquad
+\text{for all } k=1,\dots,d,
+$$
+where
+$$
+\beta
+:=
+\sqrt{
+\frac{
+\log(4d/\delta)
+}{
+2m
+}
+}.
+$$
+
+\subsubsection{Step 3: Combine the Two Events}
+
+Assume both high-probability events from Steps 1 and 2 hold. Then for every $k$,
+\begin{align*}
+L_{\cD}(w_{\widehat{k}})
+&\le
+L_{S_2}(w_{\widehat{k}})+\beta \\
+&\le
+L_{S_2}(w_k)+\beta \\
+&\le
+L_{\cD}(w_k)+2\beta \\
+&\le
+\inf_{\|w\|_0\le k} L_{\cD}(w)+\alpha_k+2\beta.
+\end{align*}
+Taking the infimum over $k$ gives
+$$
+L_{\cD}(w_{\widehat{k}})
+\le
+\inf_{1\le k\le d,\ \|w\|_0\le k}
+\left\{
+L_{\cD}(w)+\alpha_k+2\beta
+\right\}.
+$$
+
+Since $m=n/2$, both $\alpha_k$ and $\beta$ are of order
+$$
+\sqrt{
+\frac{
+k\log(ed/k)+\log(d/\delta)
+}{n}
+},
+$$
+after adjusting constants. Therefore, for some universal constant $C$,
+$$
+L_{\cD}(w_{\widehat{k}})
+\le
+\inf_{1\le k\le d,\ \|w\|_0\le k}
+\left\{
+L_{\cD}(w)
++
+C
+\sqrt{
+\frac{
+k\log(ed/k)+\log(d/\delta)
+}{n}
+}
+\right\}.
+$$
+
+\subsubsection{Comparison with Penalty-Based SRM}
+
+\textbf{Penalty-based SRM.}
+All $n$ samples are used both to fit predictors and to choose the sparsity level through the explicit penalty. The price for adapting to $k$ is $\log(1/p_k)$.
+
+\textbf{Validation.}
+The first half $S_1$ is used only for fitting the predictors $w_k$, while the second half $S_2$ is used only for choosing among those $d$ fitted candidates. The price for this separation is twofold:
+\begin{itemize}
+\item each predictor is trained on only $n/2$ samples rather than all $n$ samples;
+\item model selection over the $d$ candidates contributes an extra $\log d$ term.
+\end{itemize}
+So validation is conceptually simple, but it is statistically less efficient than using one SRM objective on the full sample.
+
+\subsection{Problem 5. Computation}
+
+Now assume the realizable case: the sample is consistent with some $k$-sparse homogeneous halfspace.
+
+\subsubsection{Brute-Force Algorithm}
+
+Enumerate all support sets $I\subseteq [d]$ with $|I|=k$. For each such $I$, solve the feasibility problem
+$$
+y_i \langle w_I, x_{i,I}\rangle \ge 1
+\qquad
+\text{for } i=1,\dots,n,
+$$
+where $x_{i,I}$ is the restriction of $x_i$ to the coordinates in $I$.
+
+This feasibility problem is valid because if the sample is realizable on support $I$, then there exists a separator with strictly positive margin on the finite sample, and we can rescale it so that all margins are at least $1$.
+
+If the feasibility problem is solvable for some $I$, output the corresponding classifier. If no support works, declare failure.
+
+\subsubsection{Runtime}
+
+There are
+$$
+\binom{d}{k}
+\le
+\left(\frac{ed}{k}\right)^k
+$$
+possible supports. For each support we solve a linear feasibility problem with $k$ variables and $n$ constraints, which takes $\operatorname{poly}(n,k)$ time.
+
+So the total runtime is
+$$
+T(d,k,n)
+=
+\binom{d}{k}\operatorname{poly}(n,k)
+\le
+\left(\frac{ed}{k}\right)^k \operatorname{poly}(n,k).
+$$
+
+\subsubsection{When Is This Polynomial in d?}
+
+This runtime is polynomial in $d$ only when $k$ is a fixed constant. If $k$ grows with $d$, then the combinatorial factor $\binom{d}{k}$ gives a superpolynomial search cost. For example:
+\begin{itemize}
+\item if $k=O(1)$, the runtime is polynomial in $d$;
+\item if $k=\Theta(\log d)$, the runtime is already quasipolynomial or worse;
+\item if $k=\Theta(d^\alpha)$ for any fixed $\alpha>0$, the runtime is exponential in a power of $d$.
+\end{itemize}
+
+\subsubsection{Lesson}
+
+This is exactly the Week 4 distinction between sample complexity and computational complexity. Statistically, SRM shows that sparse predictors can be learned from about
+$$
+O\!\left(\frac{k\log(ed/k)}{\varepsilon^2}\right)
+$$
+samples. Computationally, however, finding the best sparse support may require brute-force search over $\binom{d}{k}$ possibilities. So favorable sample complexity does not by itself imply an efficient learning algorithm.
+
+\newpage
+\section{Part B: PAC-Bayes for Thresholds}
+
+Throughout this part,
+$$
+\cX_N=\{1,2,\dots,N\},
+\qquad
+\cH_N=\{h_t:t\in\{1,\dots,N+1\}\},
+\qquad
+h_t(x)=\mathbf{1}[x\ge t].
+$$
+I write the lecture PAC-Bayes complexity term as
+$$
+\mathrm{PB}(Q,P,n,\delta)
+:=
+\sqrt{
+\frac{
+\KL(Q\Vert P)+\log(2n/\delta)
+}{
+2(n-1)
+}
+}.
+$$
+Then the lecture theorem says that with probability at least $1-\delta$, simultaneously for all posteriors $Q$,
+$$
+L_{\cD}(Q)\le L_S(Q)+\mathrm{PB}(Q,P,n,\delta).
+$$
+
+\subsection{Problem 1. VC Dimension and Point-Posterior PAC-Bayes}
+
+\subsubsection{VC Dimension}
+
+First, $\VC(\cH_N)\ge 1$ because any single point $x\in\cX_N$ can be labeled both ways:
+\begin{itemize}
+\item $h_1(x)=1$,
+\item $h_{N+1}(x)=0$.
+\end{itemize}
+
+Now take two points $x<y$. Every threshold labeling is monotone: once the label becomes $1$, it stays $1$ for all larger points. Therefore the pattern
+$$
+(h(x),h(y))=(1,0)
+$$
+is impossible. So no two-point set is shattered, and hence
+$$
+\VC(\cH_N)=1.
+$$
+
+\subsubsection{Point Posterior}
+
+Let $P$ be the uniform prior on $\cH_N$, so
+$$
+P(h_t)=\frac{1}{N+1}
+\qquad
+\text{for all } t.
+$$
+Let $\widehat{h}_t=A(S)$ be any deterministic consistent ERM, and define
+$$
+Q_S=\delta_{\widehat{h}_t}.
+$$
+Then
+$$
+\KL(Q_S\Vert P)
+=
+\log\!\left(\frac{1}{P(\widehat{h}_t)}\right)
+=
+\log(N+1).
+$$
+
+Because we are in the realizable setting and $\widehat{h}_t$ is consistent,
+$$
+L_S(Q_S)=L_S(\widehat{h}_t)=0.
+$$
+Therefore PAC-Bayes gives
+$$
+L_{\cD}(Q_S)
+=
+L_{\cD}(\widehat{h}_t)
+\le
+\sqrt{
+\frac{
+\log(N+1)+\log(2n/\delta)
+}{
+2(n-1)
+}
+}
+$$
+with probability at least $1-\delta$.
+
+\subsubsection{Why This Depends on log N}
+
+This certificate pays $\log(N+1)$ because a point posterior must identify one specific threshold out of $N+1$ possibilities under the uniform prior. So PAC-Bayes is acting like a finite-class description-length bound.
+
+By contrast, the VC guarantee for thresholds uses the order structure of the whole class and sees only $\VC(\cH_N)=1$. That structural argument is independent of $N$, so its realizable sample complexity does not grow with $\log N$.
+
+\subsection{Problem 2. Version-Space Posterior}
+
+Define
+$$
+a(S)=\max\{x_i:y_i=0\},
+\qquad
+b(S)=\min\{x_i:y_i=1\},
+$$
+with the conventions $a(S)=0$ if there are no negatives and $b(S)=N+1$ if there are no positives.
+
+\subsubsection{Description of the Version Space}
+
+A threshold $h_t$ is consistent with $S$ iff:
+\begin{itemize}
+\item every negative example satisfies $x_i<t$, so $t>a(S)$;
+\item every positive example satisfies $x_i\ge t$, so $t\le b(S)$.
+\end{itemize}
+Hence
+$$
+V(S)=\{t:a(S)<t\le b(S)\}.
+$$
+Since $t$ is integer-valued, this set is
+$$
+\{a(S)+1,\dots,b(S)\},
+$$
+so
+$$
+|V(S)|=b(S)-a(S).
+$$
+
+\subsubsection{KL of the Uniform Version-Space Posterior}
+
+Let $Q_V$ be the uniform distribution on $\{h_t:t\in V(S)\}$. Then
+$$
+Q_V(h_t)=\frac{1}{|V(S)|}
+\qquad
+\text{for } t\in V(S).
+$$
+Since $P$ is uniform on all $N+1$ thresholds,
+\begin{align*}
+\KL(Q_V\Vert P)
+&=
+\sum_{t\in V(S)}
+\frac{1}{|V(S)|}
+\log\!\left(
+\frac{1/|V(S)|}{1/(N+1)}
+\right) \\
+&=
+\log\!\left(\frac{N+1}{|V(S)|}\right).
+\end{align*}
+
+\subsubsection{Empirical Risk}
+
+Every threshold in $V(S)$ is consistent with the sample, so each one has empirical risk $0$. Therefore
+$$
+L_S(Q_V)=\EE_{h\sim Q_V}[L_S(h)]=0.
+$$
+The PAC-Bayes bound becomes
+$$
+L_{\cD}(Q_V)
+\le
+\sqrt{
+\frac{
+\log((N+1)/|V(S)|)+\log(2n/\delta)
+}{
+2(n-1)
+}
+}.
+$$
+
+\subsubsection{Why It Can Be Better Than a Point Posterior}
+
+The point posterior pays $\log(N+1)$, while the version-space posterior pays only
+$$
+\log\!\left(\frac{N+1}{|V(S)|}\right).
+$$
+So if many thresholds are consistent, spreading the posterior uniformly across them lowers the KL term by $\log|V(S)|$ without increasing empirical loss. That can make the PAC-Bayes certificate strictly tighter.
+
+\subsection{Problem 3. Spreading Helps KL, but Can Hurt True Risk}
+
+Let $\cD$ be the realizable distribution with uniform marginal on $\cX_N$ and labels generated by the true threshold $h_\tau$.
+
+\subsubsection{Risk Formula}
+
+For any threshold $h_t$, the disagreement set between $h_t$ and $h_\tau$ is exactly the integer interval between $t$ and $\tau$:
+\begin{itemize}
+\item if $t>\tau$, disagreement occurs on $\tau,\tau+1,\dots,t-1$;
+\item if $t<\tau$, disagreement occurs on $t,t+1,\dots,\tau-1$.
+\end{itemize}
+In both cases the number of disagreements is $|t-\tau|$. Since the marginal on $\cX_N$ is uniform,
+$$
+L_{\cD}(h_t)=\frac{|t-\tau|}{N}.
+$$
+Therefore for any nonempty $W\subseteq\{1,\dots,N+1\}$ and uniform posterior $Q_W$,
+\begin{align*}
+L_{\cD}(Q_W)
+&=
+\frac{1}{|W|}
+\sum_{t\in W} L_{\cD}(h_t) \\
+&=
+\frac{1}{N|W|}
+\sum_{t\in W}|t-\tau|.
+\end{align*}
+
+\subsubsection{Concrete Example}
+
+Take
+$$
+N=20,
+\qquad
+\tau=11,
+\qquad
+S=\{(5,0),(17,1)\}.
+$$
+This sample is realizable by $h_{11}$, since $5<11$ and $17\ge 11$.
+
+Here
+$$
+a(S)=5,
+\qquad
+b(S)=17,
+$$
+so
+$$
+V(S)=\{6,7,\dots,17\}
+$$
+and
+$$
+|V(S)|=12.
+$$
+
+For the uniform prior $P$,
+$$
+\KL(Q_{V(S)}\Vert P)
+=
+\log\!\left(\frac{21}{12}\right)
+<
+\log(21)
+=
+\KL(\delta_{h_{11}}\Vert P).
+$$
+
+On the other hand,
+$$
+L_{\cD}(\delta_{h_{11}})=0
+$$
+because $h_{11}$ is the true threshold, while
+\begin{align*}
+L_{\cD}(Q_{V(S)})
+&=
+\frac{1}{20\cdot 12}
+\sum_{t=6}^{17}|t-11| \\
+&=
+\frac{36}{240}
+=
+\frac{3}{20}
+>
+0.
+\end{align*}
+So this example satisfies
+$$
+\KL(Q_{V(S)}\Vert P) < \KL(\delta_{h_{11}}\Vert P)
+$$
+but
+$$
+L_{\cD}(Q_{V(S)}) > L_{\cD}(\delta_{h_{11}}).
+$$
+
+\subsubsection{Why This Does Not Contradict PAC-Bayes}
+
+PAC-Bayes gives an upper bound on true risk; it does not say that a posterior with smaller KL must have smaller true risk. Lowering KL by spreading mass can also move probability onto hypotheses that make more mistakes under the data distribution.
+
+So there is no contradiction: $Q_{V(S)}$ has a better complexity term, but it averages over many wrong thresholds, and that can increase the actual risk.
+
+\subsection{Problem 4. Every Fixed Prior Can Be Attacked}
+
+Let $P$ be any prior on $\cH_N$, fixed before the sample, and assume $N\ge 3$.
+
+\subsubsection{Choose a Low-Mass Internal Threshold}
+
+There are $N-1$ internal thresholds $\{h_2,\dots,h_N\}$. Their total prior mass is at most $1$, so by averaging there exists some
+$$
+\tau\in\{2,\dots,N\}
+$$
+such that
+$$
+P(h_\tau)\le \frac{1}{N-1}.
+$$
+
+\subsubsection{A Realizable Adversarial Distribution}
+
+Define $\cD_\tau$ by
+$$
+\PP_{(x,y)\sim\cD_\tau}[x=\tau-1,y=0]=\frac12,
+\qquad
+\PP_{(x,y)\sim\cD_\tau}[x=\tau,y=1]=\frac12.
+$$
+This distribution is realizable by $h_\tau$.
+
+The sample fails to contain both support points only if all $n$ observations are $(\tau-1,0)$ or all $n$ observations are $(\tau,1)$. Therefore
+$$
+\PP_{S\sim \cD_\tau^n}[\text{$S$ contains both support points}]
+=
+1-2\left(\frac12\right)^n
+=
+1-2^{1-n}.
+$$
+
+\subsubsection{The Version Space Collapses}
+
+Assume the event above holds. Then $S$ contains at least one negative example at $\tau-1$ and at least one positive example at $\tau$. So any consistent threshold must satisfy
+$$
+t>\tau-1
+\qquad
+\text{and}
+\qquad
+t\le \tau.
+$$
+Since $t$ is an integer, the only possibility is
+$$
+t=\tau.
+$$
+Hence
+$$
+V(S)=\{\tau\}.
+$$
+
+\subsubsection{Any Zero-Empirical-Error Posterior Must Be a Point Mass}
+
+Let $Q$ be any posterior with $L_S(Q)=0$. Every threshold $h_t$ with $t\ne\tau$ misclassifies at least one of the two support points $(\tau-1,0)$ and $(\tau,1)$, and both points appear in $S$. Therefore every such $h_t$ has strictly positive empirical risk on $S$.
+
+Since
+$$
+L_S(Q)=\EE_{h\sim Q}[L_S(h)]
+$$
+is an average of nonnegative numbers and equals $0$, $Q$ can place mass only on zero-empirical-error hypotheses. But the only such hypothesis is $h_\tau$. Therefore
+$$
+Q=\delta_{h_\tau}.
+$$
+
+Consequently,
+$$
+\KL(Q\Vert P)
+=
+\log\!\left(\frac{1}{P(h_\tau)}\right)
+\ge
+\log(N-1).
+$$
+
+\subsubsection{What This Does and Does Not Show}
+
+This lower bound shows a limitation of zero-empirical-error PAC-Bayes certificates with a fixed prior: for some realizable threshold problems, every such certificate must pay at least $\log(N-1)$ in complexity.
+
+It does \emph{not} show that thresholds are statistically hard to learn. Thresholds still have VC dimension $1$, so their PAC sample complexity is independent of $N$. The lower bound is about one specific style of PAC-Bayes certificate, not about the intrinsic learnability of the threshold class.
+
+\newpage
+\section{Part C: AI Usage Report}
+
+To be honest, I'm so busy this week so here we keep the original skill and workflow as previous assignments.
+But when I'm writing research papers, I have tried to build a whole workflow to build the theorms and proof chain.
+I found it not as easy as this homework solver, because the corpus is noisy and actually the codex is too conservative to the new
+or frontier concepts. Also, the requirements for a research paper is much more strict, and you need to be very careful with the whole logic chain.
+
+Anyway, I still think that we can build a workflow to write the research paper, but we need much more time for verification and modifying the skills.
+
+\end{document}

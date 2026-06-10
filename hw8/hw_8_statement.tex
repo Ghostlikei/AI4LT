@@ -1,0 +1,136 @@
+\documentclass{article}
+
+\usepackage[english]{babel}
+\usepackage[letterpaper,top=2cm,bottom=2cm,left=3cm,right=3cm]{geometry}
+\usepackage{amsmath,amssymb}
+\setlength{\parindent}{0pt}
+
+\title{DSC 190/291: Learning Theory through Formal Proof and Proof Presentation\\Assignment 8}
+\date{UCSD, Spring 2026}
+
+\begin{document}
+\maketitle
+
+\section{Part A: Choosing Regularization by Validation}
+
+Let $\mathcal{W}$ be a convex parameter domain, and let $\ell(w,z)\in[0,1]$ be convex in $w$ and $G$-Lipschitz with respect to a norm $\|\cdot\|$. Let $\Psi$ be nonnegative and $\alpha$-strongly convex with respect to $\|\cdot\|$.
+
+Split an i.i.d. sample into an independent training sample $T$ of size $n_T$ and validation sample $V$ of size $n_V$. For a finite grid
+$$
+\Lambda=\{\lambda_1,\dots,\lambda_K\}\subset(0,\infty),
+$$
+define
+$$
+h_\lambda=A_\lambda(T)\in\arg\min_{w\in\mathcal{W}}\{L_T(w)+\lambda\Psi(w)\}.
+$$
+Then choose
+$$
+\widehat{\lambda}\in\arg\min_{\lambda\in\Lambda}L_V(h_\lambda)
+$$
+and output $h_{\widehat{\lambda}}$.
+
+\begin{enumerate}
+\item Prove the validation-selection expectation bound for $K$ fixed candidates independent of $V$:
+$$
+\mathbb{E}_V L_{\mathcal{D}}(h_{\widehat{k}})
+\le
+\min_{k\in[K]}L_{\mathcal{D}}(h_k)
++
+2\sqrt{\frac{\log(2K)}{2n_V}}.
+$$
+\item Prove the grid oracle inequality
+$$
+\mathbb{E}L_{\mathcal{D}}(h_{\widehat{\lambda}})
+\le
+\min_{\lambda\in\Lambda}\inf_{u\in\mathcal{W}}
+\left\{
+L_{\mathcal{D}}(u)+\lambda\Psi(u)+\frac{2G^2}{\lambda\alpha n_T}
+\right\}
++
+2\sqrt{\frac{\log(2K)}{2n_V}}.
+$$
+\item Let $a=\Psi(u)$ and
+$$
+\lambda_{\mathrm{opt}}(a)=\sqrt{\frac{2G^2}{\alpha a n_T}}.
+$$
+Assume the grid has, for every $a\in[B_{\min}^2,B_{\max}^2]$, some $\lambda\in\Lambda$ with
+$$
+\frac{\lambda_{\mathrm{opt}}(a)}{2}\le \lambda\le 2\lambda_{\mathrm{opt}}(a).
+$$
+Prove the scale-adaptive bound for every $u$ with $B_{\min}^2\le \Psi(u)\le B_{\max}^2$.
+\item Construct a dyadic grid satisfying the property, state $K$, set $n_T=n_V=n/2$, and identify the tuning price.
+\end{enumerate}
+
+\section{Part B: Approximate RERM and Optimization Error}
+
+For $\lambda>0$ and sample $S$ of size $n$, define
+$$
+F_S(w)=L_S(w)+\lambda\Psi(w),
+\qquad
+w_S\in\arg\min_{w\in\mathcal{W}}F_S(w).
+$$
+Let the actual algorithm return $\widetilde{w}_S$ with
+$$
+F_S(\widetilde{w}_S)\le F_S(w_S)+\eta.
+$$
+Use the exact RERM movement bound
+$$
+\|w_S-w_{S'}\|\le \frac{2G}{\lambda\alpha n}
+$$
+when $S,S'$ differ in one example.
+
+\begin{enumerate}
+\item Prove $\|\widetilde{w}_S-w_S\|\le \sqrt{2\eta/(\lambda\alpha)}$.
+\item Prove approximate RERM stability:
+$$
+|\ell(\widetilde{w}_S,z)-\ell(\widetilde{w}_{S'},z)|
+\le
+\frac{2G^2}{\lambda\alpha n}
++
+2G\sqrt{\frac{2\eta}{\lambda\alpha}}.
+$$
+\item Prove
+$$
+\mathbb{E}_S L_{\mathcal{D}}(\widetilde{w}_S)
+\le
+L_{\mathcal{D}}(u)+\lambda\Psi(u)+\frac{2G^2}{\lambda\alpha n}
++
+G\sqrt{\frac{2\eta}{\lambda\alpha}}.
+$$
+\item Choose $\lambda=\sqrt{2G^2/(\alpha B^2 n)}$ for comparators with $\Psi(u)\le B^2$, simplify, and state a sufficient condition on $\eta$.
+\item Specialize to hinge loss with $\|x\|_2\le R$ and $\Psi(w)=\frac12\|w\|_2^2$.
+\end{enumerate}
+
+\section{Part C: A Weighted Euclidean Geometry}
+
+Assume linear prediction with scalar loss convex and $g$-Lipschitz in the prediction. Let $b_j,r_j>0$, and suppose
+$$
+\mathcal{C}_b=\{w\in\mathbb{R}^d: |w_j|\le b_j\ \forall j\}
+$$
+and $|\phi_j(x)|\le r_j$. For $Q=\operatorname{diag}(q_1,\dots,q_d)$ with $q_j>0$, define
+$$
+\|w\|_Q=\sqrt{w^\top Qw},
+\qquad
+\Psi_Q(w)=\frac12 w^\top Qw.
+$$
+Use that $\Psi_Q$ is $1$-strongly convex with respect to $\|\cdot\|_Q$.
+
+\begin{enumerate}
+\item Prove the dual feature bound and regularizer range:
+$$
+\|\phi(x)\|_{Q,*}^2\le \sum_{j=1}^d \frac{r_j^2}{q_j},
+\qquad
+\sup_{w\in\mathcal{C}_b}\Psi_Q(w)=\frac12\sum_{j=1}^d q_jb_j^2.
+$$
+\item Apply the Week 8 theorem and optimize over $\lambda$ for fixed $Q$.
+\item Optimize over $q_j>0$ and show the best excess term is
+$$
+\frac{2g}{\sqrt{n}}\sum_{j=1}^d b_jr_j.
+$$
+\end{enumerate}
+
+\section{Part D: AI Usage Report}
+
+Write a short report describing AI use, accepted and rejected suggestions, verification, and recent workflow updates.
+
+\end{document}

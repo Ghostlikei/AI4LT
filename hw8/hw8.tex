@@ -1,0 +1,773 @@
+\documentclass{article}
+
+\usepackage[english]{babel}
+\usepackage[letterpaper,top=2cm,bottom=2cm,left=3cm,right=3cm,marginparwidth=1.75cm]{geometry}
+\setlength{\parindent}{0pt}
+
+\usepackage{amsmath}
+\usepackage{amsthm}
+\usepackage{amssymb}
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage{listings}
+\usepackage[colorlinks=true, allcolors=blue]{hyperref}
+\usepackage{xcolor}
+
+\lstset{
+  basicstyle=\ttfamily\small,
+  numbers=left,
+  numberstyle=\tiny,
+  stepnumber=1,
+  numbersep=8pt,
+  backgroundcolor=\color{gray!10},
+  frame=single,
+  rulecolor=\color{gray!60},
+  tabsize=2,
+  captionpos=b,
+  breaklines=true,
+  breakatwhitespace=true,
+  showstringspaces=false,
+  keywordstyle=\color{blue},
+  commentstyle=\color{green!50!black},
+  stringstyle=\color{orange},
+}
+
+\DeclareMathOperator{\diag}{diag}
+\DeclareMathOperator*{\argmin}{arg\,min}
+
+\newcommand{\EE}{\mathbb{E}}
+\newcommand{\PP}{\mathbb{P}}
+\newcommand{\cC}{\mathcal{C}}
+\newcommand{\cD}{\mathcal{D}}
+\newcommand{\cW}{\mathcal{W}}
+\newcommand{\one}{\mathbf{1}}
+
+\title{DSC 291: Learning Theory Assignment 8}
+\author{Tongle Shen}
+
+\begin{document}
+\maketitle
+
+\section{Part A: Choosing Regularization by Validation}
+
+\subsection{Problem 1. Validation Selection for a Finite Candidate Set}
+
+Condition on fixed predictors
+$$
+h_1,\dots,h_K
+$$
+that are independent of the validation set $V$. Define
+$$
+\Delta_k := L_{\cD}(h_k)-L_V(h_k).
+$$
+Let
+$$
+k^\star\in \argmin_{k\in[K]} L_{\cD}(h_k),
+\qquad
+\widehat{k}\in \argmin_{k\in[K]} L_V(h_k).
+$$
+Then
+$$
+L_{\cD}(h_{\widehat{k}})
+=
+L_V(h_{\widehat{k}})+\Delta_{\widehat{k}}
+\le
+L_V(h_{k^\star})+\Delta_{\widehat{k}}
+=
+L_{\cD}(h_{k^\star})-\Delta_{k^\star}+\Delta_{\widehat{k}}.
+$$
+Therefore
+$$
+L_{\cD}(h_{\widehat{k}})
+\le
+\min_{k\in[K]}L_{\cD}(h_k)+2\max_{k\in[K]}|\Delta_k|.
+$$
+It remains to bound the expected maximum validation deviation.
+
+For fixed $k$, $L_V(h_k)$ is the average of $n_V$ independent $[0,1]$ losses with mean $L_{\cD}(h_k)$. Hoeffding's lemma gives, for every $s>0$,
+$$
+\EE_V e^{s\Delta_k}\le e^{s^2/(8n_V)},
+\qquad
+\EE_V e^{-s\Delta_k}\le e^{s^2/(8n_V)}.
+$$
+Hence
+$$
+\EE_V e^{s|\Delta_k|}
+\le
+\EE_V e^{s\Delta_k}+\EE_V e^{-s\Delta_k}
+\le
+2e^{s^2/(8n_V)}.
+$$
+Using the exponential maximum bound,
+$$
+\EE_V\max_k |\Delta_k|
+\le
+\frac1s\log\left(\sum_{k=1}^K \EE_V e^{s|\Delta_k|}\right)
+\le
+\frac{\log(2K)}{s}+\frac{s}{8n_V}.
+$$
+Optimizing at
+$$
+s=\sqrt{8n_V\log(2K)}
+$$
+gives
+$$
+\EE_V\max_k |\Delta_k|
+\le
+\sqrt{\frac{\log(2K)}{2n_V}}.
+$$
+Taking expectation in the earlier inequality yields
+$$
+\EE_V L_{\cD}(h_{\widehat{k}})
+\le
+\min_{k\in[K]}L_{\cD}(h_k)
++
+2\sqrt{\frac{\log(2K)}{2n_V}}.
+$$
+
+\subsection{Problem 2. Oracle Inequality over a Grid}
+
+Condition on the training sample $T$. Then the trained predictors
+$$
+\{h_\lambda:\lambda\in\Lambda\}
+$$
+are fixed with respect to the validation set $V$, so Problem 1 gives
+$$
+\EE_V\!\left[L_{\cD}(h_{\widehat{\lambda}})\mid T\right]
+\le
+\min_{\lambda\in\Lambda}L_{\cD}(h_\lambda)
++
+2\sqrt{\frac{\log(2K)}{2n_V}}.
+$$
+Now take expectation over $T$:
+$$
+\EE L_{\cD}(h_{\widehat{\lambda}})
+\le
+\min_{\lambda\in\Lambda}\EE_T L_{\cD}(A_\lambda(T))
++
+2\sqrt{\frac{\log(2K)}{2n_V}}.
+$$
+
+For each fixed $\lambda$, the Week 8 stable RERM theorem gives, for every $u\in\cW$,
+$$
+\EE_T L_{\cD}(A_\lambda(T))
+\le
+L_{\cD}(u)+\lambda\Psi(u)+\frac{2G^2}{\lambda\alpha n_T}.
+$$
+Taking the infimum over $u$ and then the minimum over $\lambda\in\Lambda$ gives
+$$
+\EE L_{\cD}(h_{\widehat{\lambda}})
+\le
+\min_{\lambda\in\Lambda}\inf_{u\in\cW}
+\left\{
+L_{\cD}(u)+\lambda\Psi(u)+\frac{2G^2}{\lambda\alpha n_T}
+\right\}
++
+2\sqrt{\frac{\log(2K)}{2n_V}}.
+$$
+
+The validation term is only logarithmic in $K$ because the validation set is used to choose among $K$ already-trained candidates. Uniformly controlling the $K$ validation estimates costs
+$$
+O\!\left(\sqrt{\frac{\log K}{n_V}}\right),
+$$
+not $O(\sqrt{K/n_V})$.
+
+\subsection{Problem 3. Adapting to an Unknown Comparator Scale}
+
+Fix a comparator $u$ and write
+$$
+a:=\Psi(u).
+$$
+The $\lambda$-dependent part of the bound from Problem 2 is
+$$
+f(\lambda):=\lambda a+\frac{2G^2}{\lambda\alpha n_T}.
+$$
+Set
+$$
+c:=\frac{2G^2}{\alpha n_T}.
+$$
+Then
+$$
+f(\lambda)=a\lambda+\frac{c}{\lambda}.
+$$
+The continuous optimizer is
+$$
+\lambda_{\mathrm{opt}}(a)=\sqrt{\frac{c}{a}}
+=
+\sqrt{\frac{2G^2}{\alpha a n_T}},
+$$
+and the optimal value is
+$$
+f(\lambda_{\mathrm{opt}})
+=
+2\sqrt{ac}
+=
+2G\sqrt{\frac{2a}{\alpha n_T}}.
+$$
+
+By the grid assumption, choose $\lambda\in\Lambda$ with
+$$
+\frac{\lambda_{\mathrm{opt}}}{2}\le \lambda\le 2\lambda_{\mathrm{opt}}.
+$$
+Write $\lambda=t\lambda_{\mathrm{opt}}$ with $t\in[1/2,2]$. Since $a\lambda_{\mathrm{opt}}=c/\lambda_{\mathrm{opt}}=\sqrt{ac}$,
+$$
+f(\lambda)
+=
+\sqrt{ac}\left(t+\frac1t\right).
+$$
+On $[1/2,2]$,
+$$
+t+\frac1t\le \frac52.
+$$
+Therefore
+$$
+f(\lambda)
+\le
+\frac52\sqrt{ac}
+=
+\frac{5\sqrt{2}}{2}\,
+G\sqrt{\frac{a}{\alpha n_T}}.
+$$
+Plugging this choice into the oracle inequality gives, for every $u$ satisfying
+$$
+B_{\min}^2\le \Psi(u)\le B_{\max}^2,
+$$
+the bound
+$$
+\EE L_{\cD}(h_{\widehat{\lambda}})
+\le
+L_{\cD}(u)
++
+\frac{5\sqrt{2}}{2}\,
+G\sqrt{\frac{\Psi(u)}{\alpha n_T}}
++
+2\sqrt{\frac{\log(2K)}{2n_V}}.
+$$
+
+\subsection{Problem 4. A Dyadic Grid and the Price of Tuning}
+
+For
+$$
+a\in[B_{\min}^2,B_{\max}^2],
+$$
+the optimal regularization parameter ranges over
+$$
+\lambda_{\mathrm{opt}}(a)
+\in
+\left[
+\frac{\sqrt{2}G}{B_{\max}\sqrt{\alpha n_T}},
+\frac{\sqrt{2}G}{B_{\min}\sqrt{\alpha n_T}}
+\right].
+$$
+Define
+$$
+\lambda_0:=\frac{\sqrt{2}G}{B_{\max}\sqrt{\alpha n_T}}
+$$
+and use the dyadic grid
+$$
+\Lambda
+=
+\{\lambda_0 2^j: j=0,1,\dots,J\},
+\qquad
+J:=\left\lceil \log_2\!\left(\frac{B_{\max}}{B_{\min}}\right)\right\rceil.
+$$
+Then
+$$
+K=J+1
+=
+\left\lceil \log_2\!\left(\frac{B_{\max}}{B_{\min}}\right)\right\rceil+1.
+$$
+For every $\lambda_{\mathrm{opt}}$ in the above interval, the first grid point at least as large as $\lambda_{\mathrm{opt}}$ is at most $2\lambda_{\mathrm{opt}}$, and is certainly at least $\lambda_{\mathrm{opt}}/2$. Thus the grid satisfies the required property.
+
+Now assume $n$ is even and set
+$$
+n_T=n_V=\frac n2.
+$$
+The result from Problem 3 becomes
+$$
+\EE L_{\cD}(h_{\widehat{\lambda}})
+\le
+L_{\cD}(u)
++
+5G\sqrt{\frac{\Psi(u)}{\alpha n}}
++
+2\sqrt{\frac{\log(2K)}{n}}.
+$$
+The first statistical term,
+$$
+5G\sqrt{\frac{\Psi(u)}{\alpha n}},
+$$
+is the RERM learning term. The second term,
+$$
+2\sqrt{\frac{\log(2K)}{n}},
+$$
+is the validation-selection term.
+
+If the comparator scale $\Psi(u)$ were known in advance, one could tune $\lambda$ directly to that scale and avoid selecting over a grid. Not knowing the scale introduces the validation term involving
+$$
+\log K
+=
+\log\!\left(
+\left\lceil \log_2(B_{\max}/B_{\min})\right\rceil+1
+\right),
+$$
+and also a small constant-factor loss from discretizing $\lambda$.
+
+\newpage
+\section{Part B: Approximate RERM and Optimization Error}
+
+\subsection{Problem 1. Approximate Minimizers are Close to Exact Minimizers}
+
+For a fixed sample $S$, the objective
+$$
+F_S(w)=L_S(w)+\lambda\Psi(w)
+$$
+is $\lambda\alpha$-strongly convex because $L_S$ is convex and $\Psi$ is $\alpha$-strongly convex. Since $w_S$ is its exact minimizer,
+$$
+F_S(w)\ge F_S(w_S)+\frac{\lambda\alpha}{2}\|w-w_S\|^2
+$$
+for every $w\in\cW$.
+Apply this with $w=\widetilde{w}_S$:
+$$
+F_S(\widetilde{w}_S)
+\ge
+F_S(w_S)+\frac{\lambda\alpha}{2}\|\widetilde{w}_S-w_S\|^2.
+$$
+The optimization guarantee gives
+$$
+F_S(\widetilde{w}_S)\le F_S(w_S)+\eta.
+$$
+Combining the two inequalities,
+$$
+\frac{\lambda\alpha}{2}\|\widetilde{w}_S-w_S\|^2\le \eta.
+$$
+Hence
+$$
+\|\widetilde{w}_S-w_S\|
+\le
+\sqrt{\frac{2\eta}{\lambda\alpha}}.
+$$
+
+\subsection{Problem 2. Stability of Approximate RERM}
+
+Let $S$ and $S'$ differ in one example. For any test point $z$,
+$$
+|\ell(\widetilde{w}_S,z)-\ell(\widetilde{w}_{S'},z)|
+\le
+G\|\widetilde{w}_S-\widetilde{w}_{S'}\|.
+$$
+By the triangle inequality,
+$$
+\|\widetilde{w}_S-\widetilde{w}_{S'}\|
+\le
+\|\widetilde{w}_S-w_S\|
++
+\|w_S-w_{S'}\|
++
+\|w_{S'}-\widetilde{w}_{S'}\|.
+$$
+Problem 1 bounds the first and third terms, and the Week 8 exact movement bound gives
+$$
+\|w_S-w_{S'}\|
+\le
+\frac{2G}{\lambda\alpha n}.
+$$
+Therefore
+$$
+\|\widetilde{w}_S-\widetilde{w}_{S'}\|
+\le
+2\sqrt{\frac{2\eta}{\lambda\alpha}}
++
+\frac{2G}{\lambda\alpha n}.
+$$
+Multiplying by $G$ yields
+$$
+|\ell(\widetilde{w}_S,z)-\ell(\widetilde{w}_{S'},z)|
+\le
+\frac{2G^2}{\lambda\alpha n}
++
+2G\sqrt{\frac{2\eta}{\lambda\alpha}}.
+$$
+
+\subsection{Problem 3. Learning Guarantee with Optimization Error}
+
+Let $w_S$ denote the exact RERM solution and $\widetilde{w}_S$ the approximate solution. By Lipschitzness,
+$$
+L_{\cD}(\widetilde{w}_S)
+\le
+L_{\cD}(w_S)
++
+G\|\widetilde{w}_S-w_S\|.
+$$
+Using Problem 1,
+$$
+L_{\cD}(\widetilde{w}_S)
+\le
+L_{\cD}(w_S)
++
+G\sqrt{\frac{2\eta}{\lambda\alpha}}.
+$$
+Taking expectation over $S$ and applying the exact stable-RERM learning theorem to $w_S$ gives, for every $u\in\cW$,
+$$
+\EE_S L_{\cD}(\widetilde{w}_S)
+\le
+L_{\cD}(u)+\lambda\Psi(u)+\frac{2G^2}{\lambda\alpha n}
++
+G\sqrt{\frac{2\eta}{\lambda\alpha}}.
+$$
+
+\subsection{Problem 4. How Accurate Must the Optimizer Be?}
+
+Assume
+$$
+\Psi(u)\le B^2.
+$$
+Use
+$$
+\lambda
+=
+\sqrt{\frac{2G^2}{\alpha B^2 n}}
+=
+\frac{\sqrt{2}G}{B\sqrt{\alpha n}}.
+$$
+Then
+$$
+\lambda B^2
+=
+\sqrt{2}\,G B\frac{1}{\sqrt{\alpha n}},
+$$
+and
+$$
+\frac{2G^2}{\lambda\alpha n}
+=
+\sqrt{2}\,G B\frac{1}{\sqrt{\alpha n}}.
+$$
+So the bound from Problem 3 becomes
+$$
+\EE_S L_{\cD}(\widetilde{w}_S)
+\le
+L_{\cD}(u)
++
+2\sqrt{2}\,GB\frac{1}{\sqrt{\alpha n}}
++
+G\sqrt{\frac{2\eta}{\lambda\alpha}}.
+$$
+
+We want the optimization term to satisfy
+$$
+G\sqrt{\frac{2\eta}{\lambda\alpha}}
+\le
+\frac{GB}{\sqrt{\alpha n}}.
+$$
+After canceling $G$ and squaring,
+$$
+\frac{2\eta}{\lambda\alpha}
+\le
+\frac{B^2}{\alpha n}.
+$$
+Thus it is sufficient that
+$$
+\eta
+\le
+\frac{\lambda B^2}{2n}
+=
+\frac{GB}{\sqrt{2\alpha}\,n^{3/2}}.
+$$
+Under this condition,
+$$
+\EE_S L_{\cD}(\widetilde{w}_S)
+\le
+L_{\cD}(u)
++
+(2\sqrt{2}+1)\frac{GB}{\sqrt{\alpha n}}.
+$$
+Equivalently,
+$$
+\EE_S L_{\cD}(\widetilde{w}_S)
+\le
+\inf_{\Psi(u)\le B^2}L_{\cD}(u)
++
+(2\sqrt{2}+1)\frac{GB}{\sqrt{\alpha n}}.
+$$
+
+\subsection{Problem 5. Soft-Margin Linear Classification}
+
+For hinge loss
+$$
+\ell(w,(x,y))=(1-y\langle w,x\rangle)_+,
+\qquad
+\|x\|_2\le R,
+$$
+the map $w\mapsto \ell(w,(x,y))$ is $R$-Lipschitz in $\|\cdot\|_2$. Also
+$$
+\Psi(w)=\frac12\|w\|_2^2
+$$
+is $1$-strongly convex in $\|\cdot\|_2$.
+
+To compete with all $u$ satisfying
+$$
+\|u\|_2\le B,
+$$
+we have
+$$
+\Psi(u)\le \frac{B^2}{2}.
+$$
+Using the optimized choice
+$$
+\lambda
+=
+\sqrt{\frac{2R^2}{(B^2/2)n}}
+=
+\frac{2R}{B\sqrt{n}},
+$$
+Problem 3 gives
+$$
+\EE_S L_{\cD}(\widetilde{w}_S)
+\le
+L_{\cD}(u)
++
+\frac{2RB}{\sqrt{n}}
++
+R\sqrt{\frac{2\eta}{\lambda}}.
+$$
+Substituting $\lambda=2R/(B\sqrt n)$ into the optimization term,
+$$
+R\sqrt{\frac{2\eta}{\lambda}}
+=
+R\sqrt{\frac{\eta B\sqrt n}{R}}.
+$$
+Thus the approximate soft-margin RERM bound is
+$$
+\EE_S L_{\cD}(\widetilde{w}_S)
+\le
+\inf_{\|u\|_2\le B}L_{\cD}(u)
++
+\frac{2RB}{\sqrt{n}}
++
+R\sqrt{\frac{\eta B\sqrt n}{R}}.
+$$
+
+To make the optimization-error term no larger than
+$$
+\frac{RB}{\sqrt n},
+$$
+it suffices that
+$$
+R\sqrt{\frac{2\eta}{\lambda}}
+\le
+\frac{RB}{\sqrt n}.
+$$
+Equivalently,
+$$
+\eta\le \frac{\lambda B^2}{2n}
+=
+\frac{RB}{n^{3/2}}.
+$$
+Under this condition,
+$$
+\EE_S L_{\cD}(\widetilde{w}_S)
+\le
+\inf_{\|u\|_2\le B}L_{\cD}(u)
++
+\frac{3RB}{\sqrt n}.
+$$
+
+\newpage
+\section{Part C: A Weighted Euclidean Geometry}
+
+\subsection{Problem 1. Geometry Quantities}
+
+Let
+$$
+Q=\diag(q_1,\dots,q_d),
+\qquad
+q_j>0.
+$$
+The $Q$-norm is
+$$
+\|w\|_Q=\sqrt{w^\top Qw}.
+$$
+Its dual norm is
+$$
+\|v\|_{Q,*}
+=
+\sqrt{v^\top Q^{-1}v}.
+$$
+Indeed, by Cauchy--Schwarz,
+$$
+\langle w,v\rangle
+=
+\langle Q^{1/2}w,Q^{-1/2}v\rangle
+\le
+\|w\|_Q\sqrt{v^\top Q^{-1}v},
+$$
+and equality is attained in the direction $w\propto Q^{-1}v$.
+
+Therefore, using $|\phi_j(x)|\le r_j$,
+$$
+\|\phi(x)\|_{Q,*}^2
+=
+\sum_{j=1}^d \frac{\phi_j(x)^2}{q_j}
+\le
+\sum_{j=1}^d \frac{r_j^2}{q_j}.
+$$
+
+Next,
+$$
+\Psi_Q(w)
+=
+\frac12 w^\top Qw
+=
+\frac12\sum_{j=1}^d q_j w_j^2.
+$$
+Over
+$$
+\cC_b=\{w\in\mathbb{R}^d: |w_j|\le b_j\ \forall j\},
+$$
+each term is maximized by $|w_j|=b_j$. Hence
+$$
+\sup_{w\in\cC_b}\Psi_Q(w)
+=
+\frac12\sum_{j=1}^d q_j b_j^2.
+$$
+
+\subsection{\texorpdfstring{Problem 2. Fixed $Q$}{Problem 2. Fixed Q}}
+
+The scalar loss is $g$-Lipschitz in the prediction, so for any $w,w'$,
+$$
+|\ell(\langle w,\phi(x)\rangle,y)-\ell(\langle w',\phi(x)\rangle,y)|
+\le
+g|\langle w-w',\phi(x)\rangle|.
+$$
+Using the $Q$ dual norm,
+$$
+|\langle w-w',\phi(x)\rangle|
+\le
+\|w-w'\|_Q \|\phi(x)\|_{Q,*}.
+$$
+Therefore the loss is $G_Q$-Lipschitz with respect to $\|\cdot\|_Q$, where
+$$
+G_Q
+\le
+g\sqrt{\sum_{j=1}^d \frac{r_j^2}{q_j}}.
+$$
+Also $\Psi_Q$ is $1$-strongly convex with respect to $\|\cdot\|_Q$, and by Problem 1,
+$$
+\sup_{w\in\cC_b}\Psi_Q(w)
+=
+\frac12\sum_{j=1}^d q_j b_j^2.
+$$
+
+Apply the Week 8 stable-RERM theorem over $\cC_b$:
+$$
+\EE L_{\cD}(A_\lambda(S))
+\le
+\inf_{w\in\cC_b} L_{\cD}(w)
++
+\lambda\left(\frac12\sum_{j=1}^d q_jb_j^2\right)
++
+\frac{2g^2\sum_{j=1}^d r_j^2/q_j}{\lambda n}.
+$$
+Let
+$$
+A_Q:=\sum_{j=1}^d q_jb_j^2,
+\qquad
+R_Q^2:=\sum_{j=1}^d \frac{r_j^2}{q_j}.
+$$
+The $\lambda$-dependent expression is
+$$
+\frac{\lambda A_Q}{2}+\frac{2g^2R_Q^2}{\lambda n}.
+$$
+Optimizing over $\lambda$ gives
+$$
+\lambda^\star=\frac{2gR_Q}{\sqrt{A_Q n}},
+$$
+and the optimized value is
+$$
+\frac{2g}{\sqrt n}\sqrt{A_QR_Q^2}.
+$$
+Thus
+$$
+\EE L_{\cD}(A_{\lambda^\star}(S))
+\le
+\inf_{w\in\cC_b}L_{\cD}(w)
++
+\frac{2g}{\sqrt n}
+\sqrt{
+\left(\sum_{j=1}^d q_jb_j^2\right)
+\left(\sum_{j=1}^d \frac{r_j^2}{q_j}\right)
+}.
+$$
+
+\subsection{Problem 3. Best Diagonal Geometry}
+
+We need to minimize
+$$
+\left(\sum_{j=1}^d q_jb_j^2\right)
+\left(\sum_{j=1}^d \frac{r_j^2}{q_j}\right)
+$$
+over $q_j>0$. By Cauchy--Schwarz,
+$$
+\left(\sum_{j=1}^d b_jr_j\right)^2
+=
+\left(\sum_{j=1}^d (\sqrt{q_j}b_j)\left(\frac{r_j}{\sqrt{q_j}}\right)\right)^2
+\le
+\left(\sum_{j=1}^d q_jb_j^2\right)
+\left(\sum_{j=1}^d \frac{r_j^2}{q_j}\right).
+$$
+Equality holds when the two vectors are proportional, i.e. when
+$$
+\sqrt{q_j}b_j
+=
+c\frac{r_j}{\sqrt{q_j}}
+$$
+for a constant $c>0$. Equivalently,
+$$
+q_j=\frac{c r_j}{b_j}.
+$$
+Since any $c>0$ gives the same product, such a choice is valid for all $j$.
+
+Therefore the minimum possible product is
+$$
+\left(\sum_{j=1}^d b_jr_j\right)^2.
+$$
+Plugging this into the fixed-$Q$ bound from Problem 2, the best diagonal-geometry excess term is
+$$
+\frac{2g}{\sqrt n}\sum_{j=1}^d b_jr_j.
+$$
+
+\newpage
+\section{Part D: AI Usage Report}
+
+I used AI for the proof organization, algebra checking, and LaTeX polishing in this assignment. The parts where AI was most useful were the validation-selection proof in Part A, the optimization-error constants in Part B, and the Cauchy--Schwarz geometry optimization in Part C.
+
+The suggestions I accepted were the finite-class validation proof using Hoeffding's lemma, the discretization calculation
+$$
+t+\frac1t\le \frac52
+\qquad
+\text{for }t\in[1/2,2],
+$$
+and the diagonal-geometry substitution
+$$
+q_j\propto \frac{r_j}{b_j}.
+$$
+These suggestions were useful because they directly matched the constants and structure requested in the assignment.
+
+I rejected or substantially modified two suggestions. First, I did not use a high-probability validation argument, because the problem asks for an expectation bound and the cleaner expectation proof gives the exact stated form. Second, I corrected the weighted-geometry term to scale as
+$$
+\frac{2g}{\sqrt n}\sum_j b_jr_j,
+$$
+which follows from the Week 8 theorem; a version with $2g\sqrt n$ would have the wrong statistical rate.
+
+I verified the submitted work by checking each proof against the assignment statement and the Week 8 slides. In Part A, I checked the validation term and the factor-$2$ grid discretization constants. In Part B, I checked the distinction between approximate-stability, which has a $2G\sqrt{2\eta/(\lambda\alpha)}$ term, and the expected-risk bound, which only needs one such comparison to the exact RERM output. In Part C, I checked the dual norm formula and the equality condition in Cauchy--Schwarz. Finally, I rebuilt the PDF with \verb|pdflatex| to catch LaTeX and formatting errors.
+
+No new repo skill was necessary for this assignment. The five most recent workflow rules I relied on were:
+\begin{itemize}
+\item use the shared \verb|ai4lt| Conda environment before doing homework work,
+\item compile with \verb|pdflatex|,
+\item create a reusable statement file for each homework folder,
+\item keep generated or supporting artifacts inside the assignment-local directory,
+\item keep long code out of the report and reference relative paths when code is used.
+\end{itemize}
+
+\end{document}

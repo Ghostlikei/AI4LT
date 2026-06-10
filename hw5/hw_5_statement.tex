@@ -1,0 +1,156 @@
+\documentclass{article}
+
+\usepackage[english]{babel}
+\usepackage[letterpaper,top=2cm,bottom=2cm,left=3cm,right=3cm]{geometry}
+\usepackage{amsmath,amssymb}
+\setlength{\parindent}{0pt}
+
+\title{DSC 190/291: Learning Theory through Formal Proof and Proof Presentation\\Assignment 5}
+\date{UCSD, Spring 2026}
+
+\begin{document}
+\maketitle
+
+\section{Overview}
+
+This assignment has three parts:
+\begin{itemize}
+\item Part A: sparse halfspaces and agnostic hardness.
+\item Part B: surrogate losses and the fixed-feature barrier.
+\item Part C: AI usage report.
+\end{itemize}
+
+\section{Part A: Sparse Halfspaces and Agnostic Hardness (40 points)}
+
+Let
+$$
+\mathcal{H}_{d,k}
+=
+\left\{
+x \mapsto \operatorname{sign}(\langle w,x\rangle)
+:
+w \in \mathbb{R}^d,\ \|w\|_0 \le k
+\right\},
+$$
+where
+$$
+\operatorname{sign}(z)=+1 \text{ for } z\ge 0,
+\qquad
+\operatorname{sign}(z)=-1 \text{ for } z<0.
+$$
+
+\begin{enumerate}
+\item Use the Week 4 VC-dimension bound for sparse halfspaces to explain why, if exact empirical risk minimization over $\mathcal{H}_{d,k}$ were computationally available, then the class would be agnostically PAC learnable with sample complexity polynomial in $k$, $\log d$, $1/\varepsilon$, and $\log(1/\delta)$. Then compare this with the brute-force realizable algorithm from Week 4 and explain why the sample-complexity statement and the runtime statement are fundamentally different.
+
+\item Show that deciding empirical agreement for sparse halfspaces is NP-hard when both $d$ and $k$ are part of the input. Reduce from \textsc{Set Cover}. A useful hint is to let coordinates correspond to sets, let negative coordinates of $w$ encode selected sets, let positive examples charge the number of selected sets, and let repeated negative examples reward covered universe elements. Then use the Week 5 learner-to-agreement theorem to conclude that, assuming $\mathrm{NP}\neq\mathrm{RP}$, the family $\mathcal{H}_{d,k}$ is not efficiently properly agnostically PAC learnable when $k$ is part of the input.
+
+\item Run a small experiment comparing:
+\begin{itemize}
+\item a proper sparse $0/1$ search baseline on very small $d$ and $k$,
+\item a convex surrogate method such as hinge-loss minimization with an $\ell_1$ constraint.
+\end{itemize}
+You may choose the synthetic data yourself. The goal is not a large benchmark; it is to illustrate the difference between exact empirical agreement over sparse classifiers and tractable convex optimization over a larger linear class. Include at least one runtime comparison as $d$ or $k$ increases and one comparison of empirical $0/1$ agreement against the surrogate objective or validation error. State clearly whether your sparse baseline is exact or approximate, and explain whether the surrogate method returns a proper $k$-sparse classifier.
+\end{enumerate}
+
+\section{Part B: Surrogate Losses and the Fixed-Feature Barrier (45 points)}
+
+\begin{enumerate}
+\item Let $S=((x_1,y_1),\dots,(x_m,y_m))$ with $x_i\in\mathbb{R}^d$ and $y_i\in\{-1,+1\}$. Consider linear predictors $f_w(x)=\langle w,x\rangle$ with the hinge loss
+$$
+\ell_{\mathrm{hinge}}(f_w(x),y)=(1-yf_w(x))_+,
+$$
+under an $\ell_1$ constraint
+$$
+\|w\|_1 \le B.
+$$
+Write the empirical hinge-loss minimization problem as an explicit linear program by introducing slack variables and the standard positive/negative decomposition of $w$. Then explain carefully why this tractable surrogate optimization problem is \emph{not} the same as solving empirical $0/1$ agreement over $\mathcal{H}_{d,k}$.
+
+\item Consider the one-dimensional domain $\mathcal{X}=\{-M,1\}$ with labels always $+1$. Let
+$$
+\mathbb{P}[x=1]=1-p,
+\qquad
+\mathbb{P}[x=-M]=p,
+$$
+where
+$$
+0<p<\frac12,
+\qquad
+M>\frac{1-p}{p}.
+$$
+For predictors $f_w(x)=wx$, prove the following:
+\begin{enumerate}
+\item The best $0/1$ classifier has population error at most $p$.
+\item Every minimizer of the population hinge risk has $0/1$ error $1-p$.
+\end{enumerate}
+Conclude that for every $\varepsilon>0$ and every $\alpha<1$ there exists a distribution of this form such that
+$$
+\inf_w L^{0/1}_{\mathcal{D}}(f_w)\le \varepsilon,
+$$
+but every hinge-risk minimizer has $0/1$ error greater than $\alpha$.
+
+\item Let
+$$
+\mathcal{X}=\{-1,+1\}^d,
+$$
+and for each $I\subseteq[d]$, define the parity
+$$
+\chi_I(x)=\prod_{i\in I}x_i.
+$$
+Suppose a fixed feature map
+$$
+\phi:\{-1,+1\}^d \to \mathbb{R}^D
+$$
+has the property that for every parity $\chi_I$ there exists some $w_I\in\mathbb{R}^D$ with
+$$
+\chi_I(x)=\langle w_I,\phi(x)\rangle
+\qquad
+\text{for all } x\in\{-1,+1\}^d.
+$$
+Prove that necessarily
+$$
+D\ge 2^d.
+$$
+Then give a matching construction showing that
+$$
+D=2^d
+$$
+is sufficient. Interpret the result in the context of the Week 5 ``fixed features versus learned features'' discussion.
+
+\item Compare the linear predictor class
+$$
+\mathcal{F}_{\mathrm{lin}}
+=
+\left\{
+x \mapsto \langle \beta,x\rangle : \beta\in\mathbb{R}^d
+\right\}
+$$
+with the one-hidden-unit two-layer class
+$$
+\mathcal{F}_{\mathrm{net}}
+=
+\left\{
+x \mapsto v\langle u,x\rangle : u\in\mathbb{R}^d,\ v\in\mathbb{R}
+\right\}.
+$$
+Show that these two classes represent exactly the same set of linear predictors. Then consider squared loss on a fixed sample:
+$$
+L_{\mathrm{lin}}(\beta)=\frac1m \sum_{i=1}^m (\langle \beta,x_i\rangle-y_i)^2,
+$$
+$$
+L_{\mathrm{net}}(u,v)=\frac1m \sum_{i=1}^m (v\langle u,x_i\rangle-y_i)^2.
+$$
+Explain why $L_{\mathrm{lin}}$ is convex in $\beta$, why $L_{\mathrm{net}}$ is generally nonconvex in $(u,v)$, and why every global minimizer of the linear problem can be factorized into a global minimizer of the two-layer problem. What does this say about the difference between representational power and optimization geometry?
+\end{enumerate}
+
+\section{Part C: AI Usage Report (15 points)}
+
+Write a short report describing how you used AI in this assignment. Explain:
+\begin{enumerate}
+\item which parts of the assignment used AI,
+\item concrete suggestions you accepted,
+\item concrete suggestions you rejected or revised,
+\item how you verified the submitted proofs and experiment,
+\item the five most recent workflow updates you made for this repo and why.
+\end{enumerate}
+
+\end{document}

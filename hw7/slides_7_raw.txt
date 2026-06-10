@@ -1,0 +1,858 @@
+Week 7: Real-Valued Losses and Scale-Sensitive Complexity
+Rademacher complexity, norm bounds, margins, and kernels
+Tianhao Wang
+tianhaowang@ucsd.edu
+UCSD · Spring 2026
+DSC 190/291 Topics: Learning Theory
+
+Contents
+Contents
+Bridge from Week 6 . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 2
+Generalized Learning . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 6
+Counting Real-Valued Behaviors . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 13
+Rademacher Complexity . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 23
+Scale-Sensitive Complexity . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 31
+Margins, Surrogates, and Kernels . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 39
+Summary . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 51
+1 / 53
+
+Bridge from Week 6
+
+The course story so far
+Weeks 1-2
+Complexity = count of 
+labelings. VC dimension, 
+growth function, shattering, 
+Halving. No free lunch, 
+inductive bias, finite classes.
+Weeks 3-4
+Non-uniform complexity 
+(MDL / SRM / PAC-Bayes). 
+PAC learning, uniform 
+convergence, fundamental 
+theorem. Computational 
+hardness.
+Weeks 5-6
+Real-valued scores begin to 
+appear. Agnostic PAC, 
+surrogate losses, neural 
+networks. Weak learning, 
+AdaBoost, margin.
+Generalization is controlled by the complexity of how the class behaves on the sample.
+• Binary classification: behaviors are ±1 labelings → VC / growth function (counting).
+3 / 53
+
+Why binary VC theory is not enough
+Most modern learning is real-valued:
+• regression: predict real targets (prices, ratings, scores);
+• scale-sensitive: bound generalization by ‖𝑤‖ and margin 𝛾, not just 𝗌𝗂𝗀𝗇(𝑓(𝑥));
+• convex surrogate losses: hinge, logistic, squared (week 5).
+Where behaviors live on the sample:
+• Binary: {−1,+1}𝑛. The growth function counts them (at most 2𝑛).
+• Real-valued: ℝ𝑛. Uncountably many. Counting fails.
+4 / 53
+
+Plan for today
+Each part: what aspect of the behaviors do we measure?
+Part What we measure Tool
+Generalized learning the loss class ℱ︀ on 𝑆 empirical risk 𝐿𝑆
+Counting route behaviors up to resolution 𝛼 covering numbers, pseudo-
+dimension
+Random-sign route correlation with random signs Rademacher complexity
+Norm and margin constrained by ‖𝑤‖ and margin 𝛾 fat-shattering, ℓ2, ℓ1, kernels
+In real-valued learning, generalization is controlled by scale-sensitive complexity.
+5 / 53
+
+Generalized Learning
+
+General learning problem
+A learning problem is specified by:
+• a space of examples 𝒵︀;
+• a hypothesis space ℋ︀;
+• a loss function ℓ : ℋ︀× 𝒵︀→ ℝ;
+• a distribution 𝒟︀ over 𝒵︀, accessed only through an i.i.d. sample 𝑆 = (𝑧1,…,𝑧𝑛)∼ 𝒟︀𝑛.
+Population and empirical objectives:
+𝐿𝒟︀(ℎ)= 𝔼𝑧∼𝒟︀[ℓ(ℎ,𝑧)], 𝐿𝑆(ℎ)= 1
+𝑛∑
+𝑛
+𝑖=1
+ℓ(ℎ,𝑧𝑖).
+The agnostic learning goal is still:
+𝐿𝒟︀(𝐴(𝑆))≤ inf
+ℎ∈ℋ︀
+𝐿𝒟︀(ℎ)+ 𝜖.
+Same PAC philosophy, but ℓ may be real-valued and ℎ may not be a classifier.
+7 / 53
+
+Examples of general learning
+Binary classification
+labeled example: 𝑧 = (𝑥,𝑦)∈ 𝒳︀× {−1,+1}
+classifier: ℎ : 𝒳︀→ {−1,+1}
+0/1 loss: ℓ(ℎ,𝑧)= 𝟏[ℎ(𝑥)≠ 𝑦]
+Regression
+labeled example: 𝑧 = (𝑥,𝑦)∈ 𝒳︀× ℝ
+predictor: ℎ : 𝒳︀→ ℝ
+squared loss: ℓ(ℎ,𝑧)= (ℎ(𝑥)− 𝑦)2
+Clustering (𝑘-means)
+point: 𝑧 ∈ ℝ𝑑
+𝑘 centers: ℎ = (𝜇1,…,𝜇𝑘)
+𝑘-means loss: ℓ(ℎ,𝑧)= min𝑖 ‖𝜇𝑖 − 𝑧‖2
+Density estimation
+observation: 𝑧 ∈ 𝒵︀
+density model: ℎ specifies a density 𝑝ℎ
+negative log-likelihood: ℓ(ℎ,𝑧)= − log 𝑝ℎ(𝑧)
+Binary surrogates (with ℎ : 𝒳︀→ ℝ): hinge (1− 𝑦ℎ(𝑥))+, logistic log(1+ 𝑒−𝑦ℎ(𝑥)), exp 𝑒−𝑦ℎ(𝑥).
+Real-valued ℓ is the rule binary 0/1 is the special case.
+8 / 53
+
+ERM: the natural learning rule
+We cannot see the population risk 𝐿𝒟︀(ℎ), but we can compute the empirical risk:
+𝐿𝑆(ℎ)= 1
+𝑛∑
+𝑛
+𝑖=1
+ℓ(ℎ,𝑧𝑖).
+Empirical Risk Minimization (ERM) returns the ℎ with smallest empirical risk:
+̂ℎ = 𝖤𝖱𝖬ℋ︀(𝑆)∈ arg min
+ℎ∈ℋ︀
+𝐿𝑆(ℎ).
+If 𝐿𝑆 is close to 𝐿𝒟︀ throughout ℋ︀, then 𝐿𝒟︀(̂ℎ) should be close to infℎ∈ℋ︀𝐿𝒟︀(ℎ).
+ERM is our algorithm. When does the closeness hold?
+• Previously: uniform convergence of 0/1 loss on binary labels
+9 / 53
+
+The loss class
+To analyze the closeness, look at 𝐿𝑆:
+𝐿𝑆(ℎ)= 1
+𝑛∑
+𝑛
+𝑖=1
+ℓ(ℎ,𝑧𝑖).
+Each ℎ enters only through the function 𝑧 → ℓ(ℎ,𝑧).
+Collect these per-hypothesis functions: the loss class is
+ℱ︀= {𝑧 → ℓ(ℎ,𝑧): ℎ ∈ ℋ︀}.
+So 𝐿𝑆(ℎ) is the sample average of the corresponding 𝑓 ∈ ℱ︀.
+Empirical risk is controlled by the behavior of ℱ︀ on 𝑆.
+10 / 53
+
+Two standard ingredients
+Concentration for fixed ℎ. If 0 ≤ ℓ(ℎ,𝑧)≤ 𝑎, Hoeffding gives
+|𝐿𝒟︀(ℎ)− 𝐿𝑆(ℎ)| ≤ 𝑎√log(2
+𝛿)
+2𝑛 w.p. ≥ 1− 𝛿.
+But ̂ℎ = 𝖤𝖱𝖬ℋ︀(𝑆) depends on 𝑆, so we need a uniform bound.
+Uniform concentration implies ERM works. If supℎ∈ℋ︀|𝐿𝒟︀(ℎ)− 𝐿𝑆(ℎ)| ≤ 𝜖
+2, then for any ℎ∗ ∈ ℋ︀,
+𝐿𝒟︀(̂ℎ) ≤ 𝐿𝑆(̂ℎ)+ 𝜖
+2 (concentration at ̂ℎ )
+≤ 𝐿𝑆(ℎ∗)+ 𝜖
+2 (ERM: ̂ℎ  minimizes 𝐿𝑆 )
+≤ 𝐿𝒟︀(ℎ∗)+ 𝜖 (concentration at ℎ∗ ).
+Taking inf over ℎ∗: 𝐿𝒟︀(̂ℎ) ≤ infℎ∈ℋ︀𝐿𝒟︀(ℎ)+ 𝜖.
+11 / 53
+
+The proof pipeline
+Three stages to control supℎ∈ℋ︀|𝐿𝒟︀(ℎ)− 𝐿𝑆(ℎ)|:
+1. Fixed ℎ
+Hoeffding for one ℎ.
+→
+2. Sup over ℋ︀
+Bound the sup via behavior 
+of ℱ︀ on 𝑆.
+→
+3. ERM
+Sup bound makes ERM 𝜖-
+optimal.
+Stages 1 and 3 are familiar. Stage 2 is the new work this week, with two routes:
+• covering numbers and pseudo-dimension (Part 2);
+• symmetrization and Rademacher complexity (Part 3).
+Now we dive into Stage 2.
+12 / 53
+
+Counting Real-Valued Behaviors
+
+Why the growth function is no longer enough
+For binary classes, a sample 𝑆 = (𝑧1,…,𝑧𝑛) induces finitely many behaviors:
+ℱ︀[𝑆] = {(𝑓(𝑧1),…,𝑓(𝑧𝑛)): 𝑓 ∈ ℱ︀} ⊂ {−1,+1}𝑛.
+For real-valued losses, ℱ︀[𝑆] ⊂ ℝ𝑛, and there may be infinitely many such vectors.
+Covering as a remedy. Pick a finite set 𝑉 ⊂ ℝ𝑛 so that every vector lies within 𝛼 of some 𝑣 ∈ 𝑉 :
+𝛼 ℱ︀[𝑆] ⊂ ℝ𝑛
+Replace exact counting by counting at resolution 𝛼.
+14 / 53
+
+Empirical covering numbers
+An 𝛼-cover of ℱ︀ on sample 𝑆 = (𝑧1,…,𝑧𝑛) in ℓ𝑝 is a finite subset ℱ︀𝛼 ⊂ ℱ︀ such that every 𝑓 ∈ ℱ︀ has 
+some anchor 𝑔 ∈ ℱ︀𝛼 with
+( 1
+𝑛∑
+𝑛
+𝑖=1
+|𝑓(𝑧𝑖)− 𝑔(𝑧𝑖)|𝑝)
+1
+𝑝
+≤ 𝛼.
+The empirical covering number is the size of the smallest such cover:
+𝒩︀𝑝(ℱ︀,𝛼,𝑆)= min{|ℱ︀𝛼| : ℱ︀𝛼 is an 𝛼-cover of ℱ︀ on 𝑆}, 𝒩︀𝑝(ℱ︀,𝛼,𝑛)= sup
+|𝑆|=𝑛
+𝒩︀𝑝(ℱ︀,𝛼,𝑆).
+Two common choices:
+• 𝑝= ∞: every coordinate within 𝛼;
+• 𝑝= 2: average squared coordinate error ≤ 𝛼2.
+Counts the 𝛼-resolutions of behavior that ℱ︀ admits on 𝑆.
+15 / 53
+
+From covering numbers to generalization
+Sketch. Pick an 𝛼-cover ℱ︀𝛼 = {𝑔1,…,𝑔𝑁 } ⊂ ℱ︀ of size 𝑁 = 𝒩︀∞, with 𝑔𝑘 = ℓ(ℎ𝑘,⋅). For any ℎ, let ℎ𝑘 
+be its anchor. Triangle inequality:
+|𝐿𝒟︀(ℎ)− 𝐿𝑆(ℎ)| ≤ |𝐿𝒟︀(ℎ)− 𝐿𝒟︀(ℎ𝑘)|⏟
+pop. approx.
++ |𝐿𝒟︀(ℎ𝑘)− 𝐿𝑆(ℎ𝑘)|⏟        
+concentration
++ |𝐿𝑆(ℎ𝑘)− 𝐿𝑆(ℎ)|⏟
+sample approx.
+.
+• Sample-side approximation (from the cover): ≤ 𝛼.
+• Anchor concentration (Hoeffding + union over 𝑁 anchors): ≤ 𝑂(𝑎√log 𝑁 + log(1
+𝛿)
+𝑛 ) .
+• Population-side approximation needs symmetrization (omitted)
+Combining: with probability ≥ 1− 𝛿,
+sup
+ℎ∈ℋ︀
+|𝐿𝒟︀(ℎ)− 𝐿𝑆(ℎ)| ≤ 2𝛼+ 𝑂
+(
+ 𝑎√log 𝒩︀∞ + log(1
+𝛿)
+𝑛
+)
+ .
+Optimizing 𝛼 trades the two terms: how does 𝒩︀∞ grow in 1
+𝛼 and 𝑛?
+16 / 53
+
+Pseudo-dimension: VC for real-valued classes
+How to extend VC dimension? For binary classes, shatter = realize every ±1 pattern. For real-valued 
+ℱ︀⊂ ℝ𝒵︀, the values are continuous, so what does “shatter” mean?
+Idea. Place a threshold 𝜃𝑖 at each 𝑧𝑖 and ask: is 𝑓(𝑧𝑖) above or below?
+Shattering. ℱ︀ shatters 𝑧1,…,𝑧𝑘 if there exist thresholds 𝜃1,…,𝜃𝑘 ∈ ℝ such that every binary pattern 
+𝑠 ∈ {−1,+1}𝑘 is realized:
+∃𝑓 ∈ ℱ︀ with sign(𝑓(𝑧𝑖)− 𝜃𝑖)= 𝑠𝑖 ∀𝑖.
+The pseudo-dimension Pdim(ℱ︀) is the largest such 𝑘. Equivalently, it is the VC dimension of the 
+binary subgraph class:
+Pdim(ℱ︀)= VCdim({(𝑧,𝜃)→ 𝟏[𝑓(𝑧)≤ 𝜃] : 𝑓 ∈ ℱ︀}).
+Real-valued shattering = above/below patterns at chosen levels.
+17 / 53
+
+Pseudo-dimension controls covering
+Covering via pseudo-dimension, Pollard
+If ℱ︀⊂ [−𝑎,𝑎]𝒵︀ and Pdim(ℱ︀)≤ 𝐷, then for 0 < 𝛼 ≤ 𝑎,
+𝒩︀∞(ℱ︀,𝛼,𝑛)≤ ( 𝑒𝑛𝑎
+𝐷𝛼)
+𝐷
+.
+How to read it. A class with pseudo-dim 𝐷 behaves like a 𝐷-parameter family:
+• taking log, log 𝒩︀∞(ℱ︀,𝛼,𝑛)≤ 𝐷log(𝑒𝑛𝑎/(𝐷𝛼));
+• linear in 𝐷, logarithmic in 1
+𝛼 and 𝑛.
+Compare to the binary Sauer–Shelah bound 𝜏ℋ︀(𝑛)≤ (𝑒𝑛
+𝑑 )
+𝑑
+: same shape, with 𝛼-resolution replacing 
+scale 0.
+Pseudo-dim 𝐷 controls log 𝒩︀∞ at rate 𝐷log(𝑛𝑎
+𝛼).
+18 / 53
+
+Example: linear real-valued predictors
+Take ℋ︀= {𝑥 → ⟨𝑤,𝑥⟩ : 𝑤 ∈ ℝ𝑑}. The subgraph 𝟏[𝑓(𝑥)≤ 𝜃] becomes
+⟨𝑤,𝑥⟩ − 𝜃 ≤ 0 ≡ ⟨(𝑤,−1),(𝑥,𝜃)⟩ ≤ 0,
+a halfspace through the origin in ℝ𝑑+1.
+Halfspaces in ℝ𝑑+1 have VC dimension at most 𝑑 + 1, so Pdim(ℋ︀)≤ 𝑑 + 1.
+Plugging into the covering theorem:
+𝒩︀∞(ℋ︀,𝛼,𝑛)≤ (𝑒𝑛
+𝛼)
+𝑑+1
+.
+Pseudo-dim scales with the number of parameters, just like VC.
+19 / 53
+
+Which class gets pseudo-dimension?
+ERM averages the loss class
+ℱ︀= {(𝑥,𝑦)→ ℓ(ℎ(𝑥),𝑦): ℎ ∈ ℋ︀},
+so we need Pdim(ℱ︀), not Pdim(ℋ︀).
+Composition rules. If ℓ(̂𝑦,𝑦) is well-behaved in the prediction ̂𝑦 = ℎ(𝑥):
+• ℓ monotone in ̂𝑦 for each 𝑦 (e.g., hinge max(0,1− 𝑦̂𝑦)): Pdim(ℱ︀)≤ Pdim(ℋ︀).
+• ℓ unimodal in ̂𝑦 for each 𝑦 (e.g., squared (̂𝑦− 𝑦)2, absolute |̂𝑦− 𝑦|): Pdim(ℱ︀)≤ 2Pdim(ℋ︀).
+Pseudo-dim of ℋ︀ propagates to ℱ︀ up to a factor of 1 or 2.
+20 / 53
+
+Real-valued generalization bound
+Plug Pollard’s covering bound log 𝒩︀∞(ℱ︀,𝛼,𝑛)≤ 𝐷log(𝑒𝑛 𝑎
+𝐷𝛼) into the covering → generalization 
+bound and optimize 𝛼:
+ERM bound via pseudo-dimension
+If 0 ≤ ℓ ≤ 𝑎 and Pdim(ℱ︀)≤ 𝐷, then with probability ≥ 1− 𝛿,
+𝐿𝒟︀(̂ℎ) ≤ inf
+ℎ∈ℋ︀
+𝐿𝒟︀(ℎ)+ 𝑐𝑎√𝐷log(𝑛
+𝐷)+ log(1
+𝛿)
+𝑛 .
+Real-valued analog of the VC bound, with 𝐷 = Pdim(ℱ︀) in place of VCdim(ℋ︀).
+21 / 53
+
+Covering route recap
+The pipeline:
+Bounded loss
+0 ≤ ℓ(ℎ,𝑧)≤ 𝑎
+→
+Pseudo-dim
+Pdim(ℱ︀)≤ 𝐷 bounds 
+𝒩︀∞.
+→
+Uniform conv.
+Covering + concentration 
++ symmetrization → 
+ERM works.
+• Pseudo-dim applies to the loss class ℱ︀= {(𝑥,𝑦)→ ℓ(ℎ(𝑥),𝑦): ℎ ∈ ℋ︀}, not directly to ℋ︀.
+Counting gives a parametric bound. Parts 3–4 give a scale-sensitive alternative.
+22 / 53
+
+Rademacher Complexity
+
+Why a second route?
+Counting via Pdim gives a parametric bound: gen. error ≤ 𝑂(𝑎√𝐷
+𝑛), 𝐷 = Pdim(ℱ︀).
+Where it fails. Consider linear predictors in ℝ𝑑 with bounded norm:
+ℋ︀𝐵 = {𝑥 → ⟨𝑤,𝑥⟩ : ‖𝑤‖2 ≤ 𝐵}.
+• Pdim(ℋ︀𝐵)= Θ(𝑑) regardless of 𝐵 — counting bound scales with the ambient dimension 𝑑.
+• When 𝑑 ≫ 𝑛 (e.g., overparameterized models, kernels), √𝑑/𝑛 is vacuous.
+• But intuitively, the norm constraint ‖𝑤‖2 ≤ 𝐵 should make the class simpler when 𝐵 is small — 
+predictions live in [−𝐵𝑅,𝐵𝑅] if ‖𝑥‖2 ≤ 𝑅.
+Counting fails when parameter count ≫ true complexity.
+We need a complexity measure that depends on the actual constraint.
+24 / 53
+
+Symmetrization: deriving Rademacher complexity
+Plan. Run a symmetrization proof on 𝔼𝑆 supℎ(𝐿𝒟︀(ℎ)− 𝐿𝑆(ℎ)) and let the new complexity measure 
+emerge as the right-hand side.
+Step 1 (ghost sample). Let 𝑆′ ∼ 𝒟︀𝑛 be independent of 𝑆. Since 𝐿𝒟︀(ℎ)= 𝔼𝑆′𝐿𝑆′(ℎ), Jensen gives:
+𝔼𝑆 sup
+ℎ
+(𝐿𝒟︀(ℎ)− 𝐿𝑆(ℎ))≤ 𝔼𝑆,𝑆′ sup
+ℎ
+1
+𝑛∑
+𝑖
+(ℓ(ℎ,𝑧′
+𝑖)− ℓ(ℎ,𝑧𝑖)).
+Step 2 (symmetrize). 𝑧𝑖,𝑧′
+𝑖  exchangeable, so multiplying by 𝜉𝑖 ∈ {−1,+1} leaves the expectation:
+= 𝔼𝑆,𝑆′,𝜉 sup
+ℎ
+1
+𝑛∑
+𝑖
+𝜉𝑖(ℓ(ℎ,𝑧′
+𝑖)− ℓ(ℎ,𝑧𝑖)).
+Step 3 (split). sup(𝑎− 𝑏)≤ sup 𝑎+ sup(−𝑏), both halves equal by symmetry:
+≤ 2𝔼𝑆,𝜉 sup
+ℎ
+1
+𝑛∑
+𝑖
+𝜉𝑖ℓ(ℎ,𝑧𝑖).
+The RHS is a correlation of ℓ(ℎ,⋅) with random signs: this is Rademacher complexity.
+25 / 53
+
+Empirical Rademacher complexity
+Definition. Fix 𝑆 = (𝑧1,…,𝑧𝑛); draw 𝜉1,…,𝜉𝑛 i.i.d. uniform on {−1,+1}. Assume |𝑓(𝑧)| ≤ 𝑎 for all 
+𝑓 ∈ ℱ︀,𝑧 ∈ 𝒵︀ (e.g., 𝑎 is the loss range).
+ℛ︀𝑆(ℱ︀)≔ 𝔼𝜉 sup
+𝑓∈ℱ︀
+1
+𝑛∑
+𝑛
+𝑖=1
+𝜉𝑖𝑓(𝑧𝑖).
+Game intuition. The signs 𝜉 propose random labels; the player picks 𝑓 ∈ ℱ︀ to maximize correlation:
+• rich ℱ︀ (fits any labeling): ℛ︀𝑆(ℱ︀)≈ 𝑎 (the maximum possible);
+• constrained ℱ︀: ℛ︀𝑆(ℱ︀) is small.
+Immediate consequence of the proof. With 𝑓 = ℓ(ℎ,⋅), applying the chain to both ℱ︀ and −ℱ︀:
+𝔼𝑆 sup
+ℎ
+|𝐿𝒟︀(ℎ)− 𝐿𝑆(ℎ)| ≤ 2𝔼𝑆[ℛ︀𝑆(ℱ︀)] ≕ 2ℛ︀𝒟︀𝑛(ℱ︀).
+ℛ︀𝒟︀𝑛(ℱ︀) bounds expected uniform convergence.
+26 / 53
+
+From expectation to high probability
+So far we have an expected bound. Turn it into a high-probability statement by concentration
+• Apply McDiarmid’s bounded-differences inequality to 𝑔(𝑆)= supℎ(𝐿𝒟︀(ℎ)− 𝐿𝑆(ℎ))
+For 0 ≤ ℓ ≤ 𝑎, with probability ≥ 1− 𝛿,
+sup
+ℎ∈ℋ︀
+(𝐿𝒟︀(ℎ)− 𝐿𝑆(ℎ))≤ 2ℛ︀𝒟︀𝑛(ℱ︀)+ 𝑎√log(2
+𝛿)
+2𝑛 .
+Applying to −ℱ︀ for the reverse direction and plugging into the ERM chain:
+𝐿𝒟︀(̂ℎ) ≤ inf
+ℎ∈ℋ︀
+𝐿𝒟︀(ℎ)+ 4ℛ︀𝒟︀𝑛(ℱ︀)+ 𝑂
+(
+ 𝑎√log(1
+𝛿)
+𝑛
+)
+ .
+Symmetrization (expected) + McDiarmid (concentration) → high-prob ERM bound.
+Next: how to bound ℛ︀𝒟︀𝑛(ℱ︀)?
+27 / 53
+
+Bounding ℛ︀, case 1: finite classes (Massart)
+For a finite class ℱ︀ with −𝑎 ≤ 𝑓(𝑧)≤ 𝑎 for all 𝑓,𝑧, Massart’s finite-class lemma gives
+∀𝑆,ℛ︀𝑆(ℱ︀)≤ 𝑎√2log|ℱ︀|
+𝑛 ⇒ ℛ︀𝒟︀𝑛(ℱ︀)≤ 𝑎√2log|ℱ︀|
+𝑛 .
+Plugging into the ERM bound: with probability ≥ 1− 𝛿,
+𝐿𝒟︀(̂ℎ) ≤ inf
+ℎ∈ℋ︀
+𝐿𝒟︀(ℎ)+ 𝑂
+(
+ 𝑎√log|ℱ︀|
+𝑛 + 𝑎√log(1
+𝛿)
+𝑛
+)
+ .
+Note log|ℱ︀| ≤ log|ℋ︀|: recovers the finite-class uniform convergence from Week 3 as a special case.
+28 / 53
+
+Bounding ℛ︀, case 2: via covering numbers
+Second way to upper-bound ℛ︀, useful for infinite classes whose behavior on 𝑆 has a finite cover.
+One scale (Pollard)
+ℛ︀𝑆(ℱ︀)≤ 𝛼+ 𝑎√log 𝒩︀1(ℱ︀,𝛼,𝑆)
+𝑛 .
+Pick one resolution 𝛼; pay 𝛼 for approximation 
+and √log 𝒩︀1
+𝑛  for the cover size.
+All scales (Dudley)
+ℛ︀𝑆(ℱ︀)≤ 𝐶√𝑛∫
+𝑎
+0
+√log 𝒩︀2(ℱ︀,𝛼,𝑆)d𝛼.
+Integrate over scales; useful when log 𝒩︀2 
+grows polynomially in 1
+𝛼.
+Take sup𝑆 on the covering number to bound ℛ︀𝒟︀𝑛(ℱ︀).
+Covering numbers (Part 2′s tool) feed directly into Rademacher bounds.
+29 / 53
+
+Comparing the two routes
+We now have two complexity measures bounding generalization. How do they compare?
+Counting route
+Pdim → covering 𝒩︀ → uniform conv.
+Random-sign route
+ℛ︀→ uniform conv.
+Covers → Rademacher (previous slide). So any bound from counting yields a Rademacher bound.
+Rademacher is strictly more refined. For ℓ2-norm-constrained linear predictors in ℝ𝑑:
+• Pdim(ℋ︀𝐵)= Θ(𝑑) — useless when 𝑑 is large;
+• ℛ︀𝒟︀𝑛(ℋ︀𝐵)≤ 𝐵𝑅/√𝑛 — dimension free (Part 4).
+Counting needs small Pdim; Rademacher only needs a structural constraint (e.g., norm bound).
+Next: develop Rademacher bounds for norm-constrained classes.
+30 / 53
+
+Scale-Sensitive Complexity
+
+Why parameter count misses something
+Motivating example: norm-constrained linear predictors ℋ︀𝐵 = {𝑥 → ⟨𝑤,𝑥⟩ : 𝑤 ∈ ℝ𝑑}.
+The problem.
+• Pdim(ℋ︀𝐵)≥ 𝑑 regardless of 𝐵 (next slide).
+• Part 2′s bound is at least √𝑑
+𝑛, which is loose when 𝑑 ≫ 𝑛.
+Goal of this part. Build complexity measures that depend on:
+• the norm bound 𝐵: ‖𝑤‖2 ≤ 𝐵,
+• the data scale 𝑅: ‖𝑥‖2 ≤ 𝑅,
+• the loss’s Lipschitz constant 𝐿: |ℓ(𝑎)− ℓ(𝑏)| ≤ 𝐿|𝑎− 𝑏|.
+Together: a 𝑑-free bound.
+32 / 53
+
+Norm constraints still have large pseudo-dimension
+Claim. For any 𝐵> 0 and any 𝑑, ℋ︀𝐵 shatters the standard basis 𝑒1,…,𝑒𝑑 at thresholds 𝜃𝑖 = 0.
+Recall: shattering at 𝜃𝑖 means every sign pattern of sign(𝑓(𝑧𝑖)− 𝜃𝑖) is realizable as 𝑓 varies in ℱ︀.
+Proof. Given 𝑦𝑖 ∈ {−1,+1}, set 𝑤 = ( 𝐵√
+𝑑)(𝑦1,…,𝑦𝑑). Then ‖𝑤‖2 = 𝐵 and
+⟨𝑤,𝑒𝑖⟩ = 𝐵𝑦𝑖√
+𝑑
+, sign(⟨𝑤,𝑒𝑖⟩)= 𝑦𝑖.
+• Pdim(ℋ︀𝐵)≥ 𝑑, regardless of 𝐵.
+• Norm constraint changes the magnitudes 𝐵√
+𝑑 , not the sign patterns.
+‖𝑤‖2 ≤ 𝐵
+𝐵√
+𝑑 ⋅ 𝑒𝑖
+• Pdim(ℋ︀𝐵): independent of 𝐵.
+• Margin |𝑓(𝑒𝑖)− 𝜃𝑖| = 𝐵√
+𝑑 : depends on 𝐵.
+• Need a complexity measure that depends on this margin.
+33 / 53
+
+Fat-shattering dimension
+Idea. For linear predictors 𝑓(𝑧)= ⟨𝑤,𝑧⟩ with ‖𝑤‖2 ≤ 𝐵 and ‖𝑧‖2 ≤ 𝑅, Cauchy-Schwarz gives |𝑓(𝑧)| ≤
+𝐵𝑅, so predictions live in [−𝐵𝑅,𝐵𝑅].
+• At resolution 𝛼, this interval has only 𝑂(𝐵𝑅/𝛼) distinguishable values per point.
+• Pdim counts at resolution 0: every sign pattern, even with vanishing margin.
+• Counting at resolution 𝛼 instead gives a finite count, depending on 𝐵,𝑅,𝛼, not 𝑑.
+Definition. ℱ︀ 𝛼-shatters 𝑧1,…,𝑧𝑘 if there exist thresholds 𝜃1,…,𝜃𝑘 such that every binary pattern 
+𝑦 ∈ {−1,+1}𝑘 is realized with margin 𝛼:
+𝑦𝑖 = +1 ⇒ 𝑓(𝑧𝑖)≥ 𝜃𝑖 + 𝛼,
+𝑦𝑖 = −1 ⇒ 𝑓(𝑧𝑖)≤ 𝜃𝑖 − 𝛼.
+The fat-shattering dimension fat𝛼(ℱ︀) is the largest such 𝑘.
+• 𝛼 = 0: recovers pseudo-dimension.
+• 𝛼 > 0: only patterns realizable with margin 𝛼 count; larger 𝛼 ⇒ smaller fat𝛼(ℱ︀).
+Fat-shattering = pseudo-dimension at positive resolution 𝛼.
+34 / 53
+
+Fat-shattering for ℓ2 linear predictors
+Let 𝒳︀𝑅 = {𝑥 ∈ ℝ𝑑 : ‖𝑥‖2 ≤ 𝑅} and ℋ︀𝐵 = {𝑥 → ⟨𝑤,𝑥⟩ : ‖𝑤‖2 ≤ 𝐵}.
+Fat-shattering bound
+For every 𝛼 > 0, if the input domain is 𝒳︀𝑅, then fat𝛼(ℋ︀𝐵)≤ (𝐵𝑅
+𝛼)
+2
+.
+Two readings.
+• Dimension-free. No 𝑑 appears — bound is independent of the ambient dimension.
+• Scale-sensitive. Halving 𝛼 quadruples the bound; smaller gaps allow more patterns.
+Contrast with pseudo-dim, which gave 𝑑: shrinking 𝐵 helps only at positive resolution 𝛼.
+Norm + margin replaces 𝑑 in the complexity bound: (𝐵𝑅
+𝛼)
+2
+.
+35 / 53
+
+Direct Rademacher bound for ℓ2 linear predictors
+Fat-shattering gave a scale-sensitive complexity. To plug into Part 3′s generalization bound, we need 
+ℛ︀𝒟︀𝑛(ℋ︀𝐵). Compute the empirical version directly:
+ℛ︀𝑆(ℋ︀𝐵)= 𝔼𝜉 sup
+‖𝑤‖2≤𝐵
+1
+𝑛⟨𝑤,∑
+𝑖
+𝜉𝑖𝑥𝑖⟩ (definition)
+= 𝐵
+𝑛𝔼𝜉‖∑
+𝑖
+𝜉𝑖𝑥𝑖‖
+2
+(Cauchy–Schwarz: sup
+‖𝑤‖2≤𝐵
+⟨𝑤,𝑣⟩ = 𝐵‖𝑣‖2 )
+≤ 𝐵
+𝑛√
+ÑÑÒ
+𝔼𝜉‖∑
+𝑖
+𝜉𝑖𝑥𝑖‖
+2
+2
+(Jensen, 
+√
+⋅  concave)
+= 𝐵
+𝑛√∑
+𝑖
+‖𝑥𝑖‖2
+2 (cross terms vanish)
+≤ 𝐵
+𝑛
+√
+𝑛𝑅2 = 𝐵𝑅√𝑛 (‖𝑥𝑖‖2 ≤ 𝑅 ).
+ℛ︀𝑆(ℋ︀𝐵)≤ 𝐵𝑅/√𝑛, dimension-free.
+36 / 53
+
+From hypotheses to losses: contraction
+ℛ︀𝑆(ℋ︀𝐵) controls the prediction class, but ERM operates on the loss class. Bridge via contraction.
+Recall: 𝜑 : ℝ → ℝ is 𝐺-Lipschitz if |𝜑(𝑎)− 𝜑(𝑏)| ≤ 𝐺|𝑎− 𝑏| for all 𝑎,𝑏.
+Contraction (Talagrand)
+If 𝜑𝑖 : ℝ → ℝ is 𝐺-Lipschitz for each 𝑖, then for any class ℋ︀⊂ ℝ𝒳︀ and sample 𝑆 = (𝑥1,…,𝑥𝑛),
+𝔼𝜉 sup
+ℎ∈ℋ︀
+1
+𝑛∑
+𝑖
+𝜉𝑖𝜑𝑖(ℎ(𝑥𝑖))≤ 𝐺 ⋅ 𝔼𝜉 sup
+ℎ∈ℋ︀
+1
+𝑛∑
+𝑖
+𝜉𝑖ℎ(𝑥𝑖).
+Applied with 𝜑𝑖(̂𝑦)= ℓ(̂𝑦,𝑦𝑖) (Lipschitz in the prediction):
+ℛ︀𝑆({(𝑥,𝑦)→ ℓ(ℎ(𝑥),𝑦): ℎ ∈ ℋ︀})≤ 𝐺 ⋅ ℛ︀𝑆(ℋ︀).
+Examples with 𝐺 = 1: hinge, logistic, absolute. Squared loss is 2𝑎-Lipschitz on [−𝑎,𝑎].
+Lipschitz losses preserve Rademacher control, up to a factor of the Lipschitz constant 𝐺.
+37 / 53
+
+ℓ2-regularized linear prediction
+Norm-constrained generalization bound
+For ℋ︀𝐵 = {𝑥 → ⟨𝑤,𝑥⟩ : ‖𝑤‖2 ≤ 𝐵}, data with ‖𝑥‖2 ≤ 𝑅, and a 𝐺-Lipschitz loss bounded in [0,𝑎], 
+with probability ≥ 1− 𝛿, ̂𝑤 = 𝖤𝖱𝖬ℋ︀𝐵
+(𝑆) satisfies
+𝐿𝒟︀(̂𝑤)≤ inf
+‖𝑤‖2≤𝐵
+𝐿𝒟︀(𝑤)+ 𝑂
+(
+ 𝐺𝐵𝑅√𝑛 + 𝑎√log(1
+𝛿)
+𝑛
+)
+ .
+Two terms: Rademacher 𝐺𝐵𝑅√𝑛  (Talagrand + previous slide), and confidence 𝑎√log(1
+𝛿)
+𝑛  (concentration).
+Sample complexity: 𝑛= 𝑂(
+𝐺2𝐵2𝑅2+𝑎2 log(1
+𝛿)
+𝜖2 ), no 𝑑.
+Guarantee depends on 𝐺, 𝐵 and 𝑅, not on the ambient dimension.
+38 / 53
+
+Margins, Surrogates, and Kernels
+
+Margin normalization
+• Part 4 bound: for norm-constrained linear classes.
+• Binary classification provides a natural norm via the margin.
+Margin assumption. Data is separable with margin 𝛾 by a unit direction:
+∃𝑤∗ : 𝑦⟨𝑤∗,𝑥⟩ ≥ 𝛾 with ‖𝑤∗‖2 = 1, ∀(𝑥,𝑦)∼ 𝒟︀.
+Rescaling. Set ̃𝑤 = 𝑤∗
+𝛾 . Then 𝑦⟨̃𝑤,𝑥⟩ ≥ 1 with ‖̃𝑤‖2 = 1
+𝛾 .
+• Margin assumption ⇔ norm bound 𝐵= 1
+𝛾  at unit-margin threshold.
+• Part 4 gives a scale-sensitive complexity 𝐵𝑅/√𝑛.
+• But 0/1 loss depends only on sign(⟨𝑤,𝑥⟩): it is scale-insensitive. Mismatch.
+• Next: a scale-sensitive surrogate for 0/1 loss.
+Margin 𝛾 ⇔ norm bound 𝐵= 1
+𝛾  with unit-margin threshold.
+40 / 53
+
+Scale-sensitive surrogates
+In the signed score 𝑧 = 𝑦̂𝑦:
+loss0/1(𝑧)= 𝟏[𝑧 ≤ 0]
+lossmrg(𝑧)= 𝟏[𝑧 < 1]
+lossramp(𝑧)= min(1,(1− 𝑧)+)
+losshinge(𝑧)= (1− 𝑧)+
+• loss0/1: target; scale-insensitive.
+• lossmrg: scale-sensitive analog of loss0/1.
+• lossramp: Lipschitz smoothing of lossmrg.
+• losshinge: convex relaxation (Part 6).
+Ordering. loss0/1 ≤ lossramp ≤ lossmrg; also lossramp ≤ losshinge.
+𝑦⟨𝑤,𝑥⟩
+loss
+hinge
+ramp
+mrg
+0/1
+0 1
+mrg: scale-sensitive proxy for loss0/1. ramp: Lipschitz smoothing for Talagrand.
+41 / 53
+
+Margin-based generalization
+Assume ‖𝑥‖2 ≤ 𝑅 a.s., and let ̂𝑤 = 𝖤𝖱𝖬mrg
+𝐵 (𝑆) minimize empirical margin loss over ‖𝑤‖2 ≤ 𝐵.
+Margin generalization bound
+With probability ≥ 1− 𝛿,
+𝐿0/1
+𝒟︀ (̂𝑤)≤ inf
+‖𝑤‖2≤𝐵
+𝐿mrg
+𝒟︀ (𝑤)+ 𝑂
+(
+ √𝐵2𝑅2 + log(1
+𝛿)
+𝑛
+)
+ .
+Separable case. If 𝒟︀ is separable with margin 𝛾 and ‖𝑥‖2 ≤ 𝑅, take 𝐵= 1
+𝛾 ; then inf 𝐿mrg
+𝒟︀ = 0 and
+𝑛= 𝑂( 𝑅2
+𝛾2𝜖2) samples suffice for excess risk 𝜖.
+After normalization, margin bounds = norm bounds with 𝐵= 1
+𝛾 .
+42 / 53
+
+Why the margin bound follows
+Let ̂𝑤 = 𝖤𝖱𝖬mrg
+𝐵 (𝑆) and fix a comparator 𝑤∗ with ‖𝑤∗‖2 ≤ 𝐵. Let Δ𝐵 = 𝑂(𝐵𝑅√𝑛 + √log(1
+𝛿)
+𝑛 )  be the 
+uniform-convergence deviation.
+𝐿0/1
+𝒟︀ (̂𝑤)≤ 𝐿ramp
+𝒟︀ (̂𝑤) (ramp ≥ 0/1 pointwise) 
+≤ 𝐿ramp
+𝑆 (̂𝑤)+ Δ𝐵 (uniform conv. on Lipschitz ramp)
+≤ 𝐿mrg
+𝑆 (̂𝑤)+ Δ𝐵 (mrg ≥ ramp  pointwise)
+≤ 𝐿mrg
+𝑆 (𝑤∗)+ Δ𝐵 (̂𝑤  is ERM on mrg)
+≤ 𝐿mrg
+𝒟︀ (𝑤∗)+ 2Δ𝐵. (Hoeffding for fixed 𝑤∗)
+Why the ramp detour. ERM acts on lossmrg (not Lipschitz), but uniform convergence via Talagrand 
+needs a Lipschitz function. Ramp sits between: loss0/1 ≤ lossramp ≤ lossmrg, with ramp 1-Lipschitz.
+Ramp is the Lipschitz stepping stone between loss0/1 and lossmrg in the chain.
+43 / 53
+
+Why hinge loss matters
+Ramp loss is Lipschitz and upper-bounds 0/1, but it is nonconvex. Hinge loss fixes this:
+• upper bound on 0/1: ℓhinge(𝑧)≥ 𝟏[𝑧 ≤ 0];
+• 1-Lipschitz in 𝑧; convex in ̂𝑦; compatible with norm regularization.
+Convexity makes hinge ERM tractable.
+Hinge ERM bound
+If ‖𝑥‖2 ≤ 𝑅 a.s. and ̂𝑤 = 𝖤𝖱𝖬hinge
+𝐵 (𝑆), then with probability ≥ 1− 𝛿,
+𝐿0/1
+𝒟︀ (̂𝑤)≤ inf
+‖𝑤‖2≤𝐵
+𝐿hinge
+𝒟︀ (𝑤)+ 𝑂
+(
+ 𝐵𝑅√log(1
+𝛿)
+𝑛
+)
+ .
+Hinge ERM competes with the best hinge-risk comparator, not the best 0/1 or margin-risk one.
+44 / 53
+
+Hard margin and soft margin
+Hinge ERM with norm bound ‖𝑤‖2 ≤ 𝐵 is the Support Vector Machine (SVM), the classical max-
+margin linear classifier. Two equivalent forms:
+Hard margin (separable case):
+min
+𝑤
+‖𝑤‖2 subject to 𝑦𝑖⟨𝑤,𝑥𝑖⟩ ≥ 1 ∀𝑖.
+Points with 𝑦𝑖⟨𝑤∗,𝑥𝑖⟩ = 1 pin down 𝑤∗: the support vectors (origin of “SVM”).
+Soft margin (general):
+min
+𝑤
+𝐿hinge
+𝑆 (𝑤)+ 𝜆‖𝑤‖2
+2.
+Trades off fit (low empirical hinge loss) vs complexity (small ‖𝑤‖2).
+Hard margin is the 𝜆 → 0+ limit (under feasibility).
+Restrict norm via constraint (hard) or regularizer (soft).
+45 / 53
+
+SVM as ℓ2-controlled linear prediction
+• SVM uses only inner products ⟨𝑤,𝑥⟩ and norm ‖𝑤‖2.
+• Replace 𝑥 with 𝜑(𝑥) in a Hilbert space ℍ𝐾 (possibly infinite-dim).
+• SVM machinery transfers wholesale.
+Two issues when 𝜑 is high-dim:
+Statistical.
+• Infinite-dim → infinite VCdim.
+• ℓ2 + Lipschitz → dim-free Rademacher rate 𝐵√𝔼‖𝜑(𝑋)‖2
+2/𝑛.
+Computational/memory.
+• Cannot store/optimize an infinite-dim 𝑤.
+• Representer: 𝑤 = ∑𝑖 𝛼𝑖𝜑(𝑥𝑖), finite 𝛼 ∈ ℝ𝑛 suffices.
+• Kernel trick: only 𝐾(𝑥,𝑥′)= ⟨𝜑(𝑥),𝜑(𝑥′)⟩ appears; 𝜑 never instantiated.
+Two solutions: dim-free bound (statistics) + representer/kernel (computation).
+46 / 53
+
+Kernels: definitions and examples
+Notation. ℍ𝐾: Hilbert space generated by bumps 𝐾(⋅,𝑥), with inner product set by 
+⟨𝐾(⋅,𝑥),𝐾(⋅,𝑥′)⟩ℍ𝐾
+≔ 𝐾(𝑥,𝑥′) and RKHS norm ‖⋅‖𝐾. (SVM “weight” 𝑤 = ℎ as vector.)
+• Feature: 𝜑(𝑥)≔ 𝐾(⋅,𝑥)∈ ℍ𝐾 (the function 𝑦 → 𝐾(𝑦,𝑥)).
+• Kernel: 𝐾(𝑥,𝑥′)= ⟨𝜑(𝑥),𝜑(𝑥′)⟩ℍ𝐾
+.
+• Reproducing property: ℎ(𝑥)= ⟨ℎ,𝜑(𝑥)⟩ℍ𝐾
+ for any ℎ ∈ ℍ𝐾 (the kernel reproduces function 
+evaluations; the R in RKHS).
+Rademacher bound: ℛ︀𝒟︀𝑛({ℎ : ‖ℎ‖𝐾 ≤ 𝐵})≤ 𝐵√𝔼𝐾(𝑋,𝑋)
+𝑛
+• Linear: 𝐾(𝑥,𝑥′)= ⟨𝑥,𝑥′⟩.
+• Polynomial: 𝐾(𝑥,𝑥′)= (1+ ⟨𝑥,𝑥′⟩)𝑑.
+• Gaussian (RBF): 𝐾(𝑥,𝑥′)= exp(−‖𝑥− 𝑥′‖2
+2/(2𝜎2)). 𝜑(𝑥)= 𝐾(⋅,𝑥) is a Gaussian bump at 𝑥. 
+Bumps at distinct centers are linearly independent → ℍ𝐾 infinite-dim.
+Complexity = RKHS norm ‖ℎ‖𝐾, not ambient feature dimension.
+47 / 53
+
+Representer theorem: why finite memory suffices
+Computational obstacle. 𝑤 ∈ ℍ𝐾 may have infinitely many coordinates: how to store or optimize?
+Setup. SVM in ℍ𝐾:
+min
+𝑤∈ℍ𝐾
+𝐿hinge
+𝑆 (𝑤)+ 𝜆‖𝑤‖2
+𝐾.
+Objective depends on 𝑤 only through ⟨𝑤,𝜑(𝑥𝑖)⟩ℍ𝐾
+ and ‖𝑤‖2
+𝐾.
+Representer
+Optimum has the form 𝑤∗ = ∑𝑛
+𝑖=1𝛼𝑖𝜑(𝑥𝑖), with 𝛼 ∈ ℝ𝑛.
+Consequence. ℎ𝑤∗(𝑥)= ∑𝑖 𝛼𝑖𝐾(𝑥𝑖,𝑥), ‖𝑤∗‖2
+𝐾 = ∑𝑖,𝑗 𝛼𝑖𝛼𝑗𝐾(𝑥𝑖,𝑥𝑗).
+Support vectors. For hinge loss, 𝛼𝑖 ≠ 0 only for training points on/inside the margin: these are the 
+support vectors. 𝑤∗ is supported on (i.e., a linear combination of) those points — hence “SVM”.
+Dim-free bound + finite 𝛼 → kernel SVM feasible.
+48 / 53
+
+ℓ1 norm: weak-rule ensembles
+ℓ2 story closed: dim-free bound + representer/kernel. Consider a different ℓ1 geometry:
+ℋ︀1
+𝐵 = {𝑥 → ⟨𝑤,𝜑(𝑥)⟩ : ‖𝑤‖1 ≤ 𝐵}, 𝜑(𝑥)∈ ℝ𝑑.
+If sup𝑥 ‖𝜑(𝑥)‖∞ ≤ 𝑅∞, Rademacher complexity: ℛ︀𝑆(ℋ︀1
+𝐵)≤ 𝐵𝑅∞√2log(2𝑑)
+𝑛 .
+• ℓ2: 𝐵𝑅2√𝑛 with ‖𝑥‖2 ≤ 𝑅2. No 𝑑.
+• ℓ1: 𝐵𝑅∞√log(2𝑑)
+𝑛  with ‖𝑥‖∞ ≤ 𝑅∞. Logarithmic in 𝑑.
+AdaBoost connection. Let ℎ1,…,ℎ𝑑 : 𝒳︀→ {−1,+1} be the 𝑑 weak rules (week 6; 𝑑 can be huge).
+• Feature map: 𝜑(𝑥)= (ℎ1(𝑥),…,ℎ𝑑(𝑥)). Since each ℎ𝑡 ∈ {−1,+1}, ‖𝜑(𝑥)‖∞ = 1.
+• AdaBoost ensemble = linear in this feature space:
+𝑓𝑇(𝑥)= ∑
+𝑡
+𝛼𝑡ℎ𝑡(𝑥)= ⟨𝑤,𝜑(𝑥)⟩, 𝑤𝑡 = 𝛼𝑡, ‖𝑤‖1 = ∑
+𝑡
+|𝛼𝑡|.
+• Bound becomes ∼ (∑𝑡|𝛼𝑡|)√log 𝑑/𝑛: logarithmic in the number of weak rules.
+ℓ1 restricts to sparse or convex-combination hypotheses; pays log 𝑑 instead of 𝑑.
+49 / 53
+
+Week 7 in one picture
+Tool What it restricts Where it appears
+Loss class ℱ︀ functions ERM averages general learning
+Pseudo-dimension thresholded behavior at scale 0 bounded parametric classes
+Rademacher correlation with random labels uniform convergence
+Fat-shattering thresholded behavior at margin 𝛼 scale-sensitive classes
+ℓ2 / RKHS norm 𝐵, 𝑅, Lipschitz 𝐺 linear / kernel prediction
+ℓ1 norm ‖𝑤‖1, ‖𝜑(𝑥)‖∞ weak-rule ensembles
+Every row is a different complexity measure driving the same uniform-convergence story.
+50 / 53
+
+Summary
+
+Week 7 summary
+Setting Restricted complexity Bound shape
+General ERM loss class ℱ︀ uniform convergence
+Counting route Pdim(ℱ︀)= 𝐷 √𝐷log 𝑛/𝑛
+Random-sign route ℛ︀𝑆(ℱ︀) sample-adaptive
+ℓ2 predictors 𝐵, 𝑅, Lipschitz 𝐺 𝐺𝐵𝑅/√𝑛
+Margins / kernels 𝐵= 1/𝛾 and ‖ℎ‖𝐾 dimension-free
+ℓ1 predictors ‖𝑤‖1, ‖𝜑(𝑥)‖∞ √log 𝑑/𝑛
+Generalization comes from the complexity the learning rule restricts — different settings, 
+different names.
+52 / 53
+
+Looking ahead
+Next steps in the course.
+• Stability. Generalization through properties of a specific learning rule (rather than uniform 
+convergence).
+• Regularized ERM. Why adding 𝜆Ψ(𝑤) stabilizes learning.
+• Online learning. Regret bounds: FTL, FTRL, online gradient descent.
+• Implicit bias. Different optimizers prefer different solutions among empirical minimizers.
+Week 7 finishes the statistical-complexity story; the next lectures connect it to algorithms.
+53 / 53

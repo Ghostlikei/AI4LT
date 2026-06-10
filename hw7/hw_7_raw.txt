@@ -1,0 +1,201 @@
+DSC 190/291 · Assignment 7
+UCSD · Spring 2026
+Released: Monday, May 18 · Due: Monday, May 25, 11:59 PM
+AI policy.  AI assistance is allowed and encouraged in this course. You may use AI to learn 
+the material, explore proof structure, test examples, debug code or formalizations, and improve 
+exposition. However, you are responsible for checking correctness and for standing behind every 
+proof step, derivation, formalization, experiment, and explanation you submit. Use AI as a 
+collaborator, not as an oracle: do not submit anything you cannot explain and verify. The AI 
+usage report is a required component of the assignment.
+Submission.  Submit a single PDF on Gradescope containing your write-up, figures, and 
+discussion. Also place any supporting artifacts for the assignment in your course repository 
+under the appropriate assignment directory. This may include code, Lean files, notebooks, 
+scripts, data, or other materials needed to inspect or reproduce your work. Your submission 
+should make it clear how the repository artifacts relate to the write-up.
+Part A: Kernel Methods (10 points)
+This homework continues the scale-sensitive complexity theme from Homework 6, where 
+generalization is controlled by norms and margins rather than by dimension.
+Let 𝒰︀ be a Hilbert space with inner product ⟨·, ·⟩ and induced norm ‖·‖, and let 𝜑 : 𝒳︀→ 𝒰︀ be 
+a feature map with associated kernel 𝐾(𝑥, 𝑥′) = ⟨𝜑(𝑥), 𝜑(𝑥′)⟩. For 𝐵 > 0, let ℋ︀𝐾,𝐵 = {𝑥 →
+⟨𝑤, 𝜑(𝑥)⟩ : 𝑤 ∈ 𝒰︀, ‖𝑤‖ ≤ 𝐵} be the predictors of RKHS norm at most 𝐵. For a sample 𝑆 =
+(𝑥1 , …, 𝑥𝑛) and a real-valued function class ℱ︀, write the empirical Rademacher complexity
+̂ℛ︀𝑆(ℱ︀) = 𝔼𝜎 sup
+𝑓 ∈ℱ︀
+1
+𝑛∑
+𝑛
+𝑖=1
+𝜎𝑖𝑓(𝑥𝑖),
+where 𝜎1 , …, 𝜎𝑛 are independent uniform signs, and write ℛ︀𝒟︀𝑛(ℱ︀) = 𝔼𝑆∼𝒟︀𝑛 ̂ℛ︀𝑆(ℱ︀).
+1. (5 points) Norm-based kernel bound.
+Prove the empirical bound
+̂ℛ︀𝑆(ℋ︀𝐾,𝐵) ≤ 𝐵
+𝑛√∑
+𝑛
+𝑖=1
+𝐾(𝑥𝑖, 𝑥𝑖),
+and conclude the distribution-level bound
+ℛ︀𝒟︀𝑛(ℋ︀𝐾,𝐵) ≤ 𝐵√𝔼[𝐾(𝑋, 𝑋)]
+𝑛 .
+2. (5 points) Representer theorem.
+The space 𝒰︀ may be infinite-dimensional, yet for any 𝜆 > 0 the regularized objective
+
+𝐽 (𝑤) = 1
+𝑛∑
+𝑛
+𝑖=1
+loss(⟨𝑤, 𝜑(𝑥𝑖)⟩; 𝑦𝑖)+ 𝜆‖𝑤‖2
+can be minimized over finitely many coefficients. This is the representer theorem: prove 
+that whenever 𝐽 attains a minimum over 𝑤 ∈ 𝒰︀, some minimizer has the form
+𝑤∗ = ∑
+𝑛
+𝑗=1
+𝛼𝑗𝜑(𝑥𝑗), 𝛼 ∈ ℝ𝑛.
+Then rewrite 𝐽 as a minimization over 𝛼 ∈ ℝ𝑛 in which the data enter only through the 
+Gram matrix 𝐾𝑆, with entries (𝐾𝑆)𝑖𝑗 = 𝐾(𝑥𝑖, 𝑥𝑗).
+Part B: ℓ1 Rademacher Complexity (25 points)
+Throughout this part, ̂ℛ︀𝑆 denotes the empirical Rademacher complexity defined in Part A.
+1. (8 points) Convex hulls.
+Let ℱ︀ be a finite class of real-valued functions. Its convex hull is
+conv(ℱ︀) = {∑
+𝑓 ∈ℱ︀
+𝑎𝑓 𝑓 : 𝑎𝑓 ≥ 0, ∑
+𝑓 ∈ℱ︀
+𝑎𝑓 = 1}.
+Prove that empirical Rademacher complexity is unchanged by taking the convex hull:
+̂ℛ︀𝑆(conv(ℱ︀)) = ̂ℛ︀𝑆(ℱ︀).
+2. (10 points) ℓ1 linear predictors.
+Let 𝜑 : 𝒳︀→ ℝ𝑑 satisfy ‖𝜑(𝑥)‖∞ ≤ 𝑅 for all 𝑥, and define
+ℋ︀1
+𝐵 = {𝑥 → ⟨𝑤, 𝜑(𝑥)⟩ : ‖𝑤‖1 ≤ 𝐵}.
+Derive a logarithmic-in-dimension Rademacher bound for ℋ︀1
+𝐵. Massart’s finite-class lemma 
+bounds the Rademacher complexity of a finite class; the convex-hull identity from the 
+previous problem is what connects ℋ︀1
+𝐵 to such a class.
+3. (7 points) Comparison with sparsity bounds.
+In Homework 4 you showed that the class of 𝑘-sparse linear classifiers in ℝ𝑑 has VC 
+dimension 𝑂(𝑘 log(𝑒𝑑/𝑘)). With the VC generalization bound, with probability at least 1 −
+𝛿 over the draw of 𝑆 ∼ 𝒟︀𝑛, every 𝑘-sparse linear classifier ℎ satisfies
+𝐿0/1
+𝒟︀ (ℎ)− 𝐿0/1
+𝑆 (ℎ) ≤ 𝐶√ 𝑘 log(𝑒𝑑/𝑘)+ log(1/𝛿)
+𝑛
+for a universal constant 𝐶; structural risk minimization makes the bound adapt to the 
+unknown sparsity level 𝑘.
+Using your Rademacher bound from the previous problem and the week 7 uniform conver-
+gence theorem, derive the analogous bound for ℋ︀1
+𝐵: a bound on 𝐿ℓ
+𝒟︀(𝑤)− 𝐿ℓ
+𝑆(𝑤), holding 
+with probability at least 1 − 𝛿 over the draw of 𝑆 ∼ 𝒟︀𝑛, uniformly over ‖𝑤‖1 ≤ 𝐵, for a 
+fixed loss ℓ that is 𝐺-Lipschitz in the prediction and bounded in [0, 1].
+
+These two bounds control different loss functionals, so they are not interchangeable 
+guarantees. Compare them: which quantity is the complexity in each and which one is 
+scale-sensitive; what extra step the ℓ1 bound needs before it can say anything about 0/1 
+error; and exhibit a predictor for which the sparsity bound is vacuous while the ℓ1 bound 
+is not.
+Part C: Normalized ℓ1 Margins and FixedBoost (30 points)
+In this part the sample is 𝑆 = ((𝑥1 , 𝑦1 ), …, (𝑥𝑛, 𝑦𝑛)) with labels 𝑦𝑖 ∈ {−1, +1}, and 𝒢︀ is a 
+finite base class of binary predictors 𝑔 : 𝒳︀→ {−1, +1}, symmetric in the sense that −𝑔 ∈
+𝒢︀ whenever 𝑔 ∈ 𝒢︀. A coefficient vector 𝑤 = (𝑤𝑔)
+𝑔∈𝒢︀
+ parameterizes the real-valued predictor 
+𝑓𝑤(𝑥) = ∑𝑔∈𝒢︀𝑤𝑔𝑔(𝑥), with empirical normalized ℓ1 margin
+margin𝑆(𝑤) = min
+𝑖
+𝑦𝑖𝑓𝑤(𝑥𝑖)
+‖𝑤‖1
+,
+defined whenever ‖𝑤‖1 > 0. For a distribution 𝐷 over the 𝑛 training examples, the weighted 
+error of a predictor 𝑔 is ∑𝑖 𝐷𝑖𝟙[𝑔(𝑥𝑖) ≠ 𝑦𝑖].
+Homework 6′s AdaBoost chooses its step size adaptively to drive training error down quickly. 
+FixedBoost instead uses a fixed step size, so the ℓ1 scale of the ensemble grows in a controlled 
+way with the number of rounds. This makes the round count an explicit complexity knob and 
+lets boosting be read as a search for a large normalized ℓ1 margin, the theme of this part.
+FixedBoost. Given a step size 𝜂 > 0 and a number of rounds 𝑇, FixedBoost starts from 𝑤0 =
+0 and the uniform distribution 𝐷1 over the 𝑛 training examples. For each round 𝑡= 1, …, 𝑇:
+▶︎ pick a base predictor 𝑔𝑡 maximizing the weighted correlation ∑𝑖 𝐷𝑡
+𝑖 𝑦𝑖𝑔𝑡(𝑥𝑖);
+▶︎ set 𝑤𝑡 = 𝑤𝑡−1 + 𝜂𝑒𝑔𝑡
+, adding 𝜂 to the weight of 𝑔𝑡;
+▶︎ reweight the examples by 𝐷𝑡+1
+𝑖 ∝ exp(−𝑦𝑖𝑓𝑤𝑡
+(𝑥𝑖)).
+FixedBoost outputs the coefficient vector 𝑤𝑇.
+1. (10 points) Margin generalization.
+Assume 𝑆 is drawn i.i.d. from a population distribution 𝒟︀ over 𝒳︀× {−1, +1}. Prove a 
+population 0/1 error bound for predictors with empirical normalized margin margin𝑆(𝑤) ≥
+𝛾 for some 𝛾 > 0. Build on the generalization-gap bound from B3, specialized to the ramp 
+surrogate from the week 7 lecture, rescaled to 𝛾. State the final bound explicitly in terms 
+of |𝒢︀|, 𝑛, 𝛾, and 𝛿.
+2. (8 points) FixedBoost implication.
+Use the following theorem about FixedBoost as a black box: if every distribution 𝐷 over 
+the training sample admits a base predictor of weighted error at most 1
+2 − 𝛾
+2 , then after 
+𝑇 = 𝑂( log(𝑛)
+𝛾4 ) rounds FixedBoost returns coefficients 𝑤𝑇 satisfying
+min
+𝑖
+𝑦𝑖𝑓𝑤𝑇
+(𝑥𝑖) ≥ 𝛾
+2 ‖𝑤𝑇‖1 .
+Derive a generalization guarantee for the classifier returned by FixedBoost.
+3. (8 points) Weak learning and normalized margin.
+
+Encode the sample and base class as the matrix 𝐴 ∈ {−1, +1}𝑛×|𝒢︀| with 𝐴𝑖𝑔 = 𝑦𝑖𝑔(𝑥𝑖). The 
+weak-learning edge of a base predictor 𝑔 under a distribution 𝐷 over the sample is 1
+2 minus 
+its weighted error, its advantage over random guessing under 𝐷; the sample’s best weak-
+learning edge is the largest 𝛾 such that every distribution 𝐷 over the sample admits some 
+𝑔 ∈ 𝒢︀ with edge at least 𝛾.
+Prove the exact relationship between the best weak-learning edge and the best normalized 
+ℓ1 margin max𝑤 margin𝑆(𝑤), using von Neumann’s minimax theorem applied to 𝐴.
+4. (4 points) Connection to Homework 6.
+Explain how this margin-based view refines the sparse-boosting analysis from Homework 
+6. Your answer should identify what changes in the comparator and what changes in the 
+generalization argument.
+Part D: FixedBoost Margin Experiment (25 points)
+The base class is the 2𝑑 signed coordinate predictors on Boolean inputs 𝑥 ∈ {−1, +1}𝑑: the 
+maps 𝑥 → 𝑥𝑗 and 𝑥 → −𝑥𝑗 for 𝑗 ∈ [𝑑]. This is a finite symmetric base class in the sense of Part 
+C. For a labeled sample (𝑥1 , 𝑦1 ), …, (𝑥𝑛, 𝑦𝑛), form the sign matrix 𝐴 with 𝐴𝑖𝑔 = 𝑦𝑖𝑔(𝑥𝑖), equal 
+to +1 when 𝑔 is correct on example 𝑖 and −1 otherwise. FixedBoost interacts with the data 
+only through 𝐴: its weighted correlations, ensemble margins, and reweighting are all functions 
+of 𝐴 alone.
+This experiment tests whether FixedBoost drives the normalized ℓ1 margin toward the largest 
+value attainable on a given 𝐴. Designing the data is part of the task: choose how the labeled 
+examples (𝑥𝑖, 𝑦𝑖) are generated, and describe it precisely enough that someone could reproduce 
+your runs. You may use NumPy, plotting libraries, and a linear-programming solver for the 
+optimal-margin computation, but the FixedBoost loop must be your own.
+1. (8 points) Implementation.
+Implement FixedBoost from scratch, running directly on the matrix 𝐴, with a fixed step 
+size. Track ‖𝑤𝑡‖1 and the normalized empirical margin over rounds. You may reuse a 
+boosting harness from Homework 6; state what differs from it.
+2. (10 points) Optimal-margin comparison.
+Formulate the optimal normalized ℓ1 margin attainable on a matrix 𝐴 as a linear program, 
+and solve it. On the same matrix 𝐴, plot FixedBoost’s normalized-margin trajectory against 
+this optimal value. Do this for at least two instances: one with a large optimal margin, 
+and one harder instance where the optimal margin is small. What structure in 𝐴 makes 
+the optimal margin large, and what makes it small? The relationship you proved in C3 is 
+one way to reason about this. Construct the two instances accordingly, and report each 
+construction.
+3. (7 points) Interpretation.
+Does FixedBoost’s normalized margin approach the optimal value, and how fast? Compare 
+the observed behavior with the rate implied by the FixedBoost theorem in C2. Identify at 
+least one place where that theory is loose, vacuous, or silent relative to what you observe.
+
+Part E: Agent Skill Reflection (10 points)
+A coding-agent skill is a reusable workflow or instruction package that helps an AI coding 
+agent perform a specific kind of task. Examples include a debugging checklist, a reproducibility 
+protocol for experiments, a plotting-and-validation workflow, or a project-specific SKILL.md file.
+1. (3 points) Existing workflow.
+Describe whether you used an existing skill, checklist, prompt template, or workflow while 
+working on this assignment.
+2. (3 points) Skill development.
+Describe whether you developed or modified a coding-agent skill. If not, propose one 
+concrete skill that would help with this assignment.
+3. (4 points) Verification.
+Identify plausible coding-agent failure modes in this assignment and explain how you 
+checked the math, code, plots, optimization outputs, and final claims.

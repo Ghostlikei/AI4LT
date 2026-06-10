@@ -1,0 +1,221 @@
+\documentclass{article}
+
+\usepackage[english]{babel}
+\usepackage[letterpaper,top=2cm,bottom=2cm,left=3cm,right=3cm]{geometry}
+\usepackage{amsmath,amssymb}
+\setlength{\parindent}{0pt}
+
+\title{DSC 190/291: Learning Theory through Formal Proof and Proof Presentation\\Assignment 6}
+\date{UCSD, Spring 2026}
+
+\begin{document}
+\maketitle
+
+\section{Overview}
+
+This assignment has three parts:
+\begin{itemize}
+\item Part A: boosting sparse linear predictors and the $\ell_1$ margin.
+\item Part B: agnostic halfspace hardness via boosting.
+\item Part C: AI usage report.
+\end{itemize}
+
+\section{Part A: Boosting Sparse Linear Predictors and the $\ell_1$ Margin (45 points)}
+
+Let
+$$
+\phi : \mathcal{X}\to \{-1,+1\}^d
+$$
+be a fixed feature map. For each $j\in[d]$ and $\sigma\in\{-1,+1\}$, define
+$$
+b_{j,\sigma}(x)=\sigma \phi_j(x),
+$$
+and let
+$$
+\mathcal{B}=\{b_{j,\sigma}:j\in[d],\ \sigma\in\{-1,+1\}\}.
+$$
+For a $\{-1,+1\}$-valued predictor $b$, its edge under a distribution $Q$ is
+$$
+\frac12-L_Q(b)=\frac{\mathbb{E}_Q[y\,b(x)]}{2}.
+$$
+
+Assume $\mathcal{D}$ is realizable with margin by an $s$-sparse predictor: there exists
+$$
+w^\star\in\mathbb{R}^d
+$$
+with
+$$
+\|w^\star\|_0\le s
+$$
+and
+$$
+y\langle w^\star,\phi(x)\rangle \ge 1
+$$
+for every $(x,y)$ in the support of $\mathcal{D}$. Equivalently,
+$$
+\frac{w^\star}{\|w^\star\|_1}
+$$
+has $\ell_1$-normalized margin at least
+$$
+\frac{1}{\|w^\star\|_1}.
+$$
+When a finite sample is used, write
+$$
+S=((x_1,y_1),\dots,(x_n,y_n)).
+$$
+
+You may use without proof that sparse linear classifiers have VC dimension
+$$
+O\!\left(s\log\!\left(\frac{ed}{s}\right)\right),
+$$
+so exact sparse ERM has realizable sample complexity
+$$
+O\!\left(
+\frac{
+s\log(ed/s)+\log(1/\delta)
+}{
+\varepsilon
+}
+\right)
+$$
+up to logarithmic factors, but is computationally difficult when $s$ is part of the input.
+
+\begin{enumerate}
+\item Assume additionally that
+$$
+\|w^\star\|_\infty \le B.
+$$
+For any distribution $Q$ supported on examples satisfying the margin condition, prove that some $b\in\mathcal{B}$ has
+$$
+L_Q(b)\le \frac12-\frac{1}{2\|w^\star\|_1},
+$$
+and hence
+$$
+L_Q(b)\le \frac12-\frac{1}{2sB}.
+$$
+Then describe an $O(nd)$ weighted ERM weak learner for $\mathcal{B}$ on weighted examples
+$$
+(x_i,y_i,D_i)_{i=1}^n.
+$$
+
+\item Run AdaBoost over $\mathcal{B}$. At every round, the reweighted distribution is supported on the same margin-realizable sample, so the previous part applies with
+$$
+\gamma=\frac{1}{2sB}.
+$$
+Prove the exponential training-error bound, choose $T$ so that the training error is zero, and then use the sparse-linear VC bound, applied with the number of activated coordinates in place of $s$, to obtain a realizable generalization guarantee.
+
+State the resulting sample complexity up to logarithmic factors, and compare it with exact sparse ERM. Your comparison should identify the statistical price paid by boosting, the computational advantage, and the role of $B$.
+
+\item For odd
+$$
+s=2m+1,
+$$
+set
+$$
+d=s.
+$$
+Construct a distribution supported on $s$ labeled examples with $y=+1$ and
+$$
+\phi(x)\in\{-1,+1\}^s
+$$
+such that some
+$$
+w^\star\in\mathbb{R}^s
+$$
+has margin $1$, but every coordinate predictor has edge at most
+$$
+2^{-\Omega(s)}.
+$$
+Also show that the realizing vector satisfies
+$$
+\|w^\star\|_\infty = 2^{\Omega(s)}.
+$$
+
+\item Implement AdaBoost over the coordinate class $\mathcal{B}$. Compare an easy sparse-margin distribution of your choice with the construction from the previous part. Report training error, exponential loss, observed edge, support size, and normalized margin over rounds. Compare AdaBoost with one convex surrogate method, for example logistic regression or hinge-loss minimization with an $\ell_1$ constraint or penalty. Explain what the experiment illustrates about support sparsity, coefficient size, $\ell_1$ margin, and computational tractability.
+\end{enumerate}
+
+\section{Part B: Agnostic Halfspace Hardness via Boosting (40 points)}
+
+Let
+$$
+\mathcal{X}_d=\mathbb{R}^d,
+\qquad
+\mathcal{Y}=\{-1,+1\}.
+$$
+Let $\mathcal{H}_d$ be the class of affine halfspaces
+$$
+h_{w,b}(x)=\operatorname{sign}(\langle w,x\rangle + b),
+$$
+with $\operatorname{sign}(z)=+1$ for $z\ge 0$. Let $\mathcal{I}_{d,k}$ be the class of intersections of $k$ halfspaces: the output is $+1$ iff all $k$ halfspaces output $+1$.
+
+For a size function $k=k(d)$:
+\begin{itemize}
+\item polynomial-size means
+$$
+k(d)\le d^c
+$$
+for some fixed constant $c$,
+\item $k(d)=\omega(1)$ means $k(d)\to\infty$.
+\end{itemize}
+
+Use these black-box hardness facts:
+\begin{itemize}
+\item under standard $\mathrm{uSVP}$ hardness, intersections of $d^r$ affine halfspaces are not efficiently PAC learnable in the realizable case, even improperly, for every fixed $r>0$;
+\item under $\mathrm{RSAT}$, the same is true for intersections of $k(d)=\omega(1)$ affine halfspaces.
+\end{itemize}
+
+\begin{enumerate}
+\item Prove: if $\mathcal{D}$ is realizable by some
+$$
+g\in \mathcal{I}_{d,k},
+$$
+then some affine halfspace has error at most
+$$
+\frac12-\frac{1}{2k^2}.
+$$
+
+\item Suppose, hypothetically, that affine halfspaces are efficiently properly agnostically PAC learnable. Use the previous lemma to construct a weak learner for $\mathcal{I}_{d,k}$ in the realizable case. Give $\gamma$ such that the returned halfspace has error at most
+$$
+\frac12-\gamma,
+$$
+and explain why the weak learner is polynomial-time when
+$$
+k(d)\le d^c
+$$
+for a fixed constant $c$.
+
+\item Use AdaBoost and the boosted-halfspace VC bound
+$$
+\widetilde{O}(Td)
+$$
+to obtain a realizable learner for $\mathcal{I}_{d,k}$. At every round, the weighted distribution is supported on examples still realized by the same intersection. State the sample and runtime dependence up to logarithmic factors.
+
+\item Prove the implication: if affine halfspaces are efficiently properly agnostically PAC learnable, then intersections of
+$$
+k(d)\le d^c
+$$
+affine halfspaces are efficiently learnable in the realizable case, for every fixed $c$.
+
+Explain the contradiction with the black-box hardness facts by taking
+$$
+k(d)=d^r
+$$
+under $\mathrm{uSVP}$, or any polynomially bounded
+$$
+k(d)=\omega(1)
+$$
+under $\mathrm{RSAT}$. Conclude the implication for efficient proper agnostic PAC learning of halfspaces.
+\end{enumerate}
+
+\section{Part C: AI Usage Report (15 points)}
+
+Write a short report describing how you used AI in this assignment. Explain:
+\begin{enumerate}
+\item which parts of the assignment used AI,
+\item concrete suggestions you accepted,
+\item concrete suggestions you rejected or substantially modified,
+\item how you verified the submitted proofs and experiment,
+\item the five most recent workflow updates you made for this repo and why.
+\end{enumerate}
+
+\end{document}

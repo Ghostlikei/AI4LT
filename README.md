@@ -43,6 +43,7 @@ The tracked Conda dependencies live in `environment.yml`. Current core tools:
 
 - `python=3.11`
 - `numpy` for numerical work
+- `scipy` for linear programming used in exact small-sample baselines and hinge-loss experiments
 - `matplotlib` for plots and experiment figures
 - `ipykernel` for notebook support
 - `pypdf` for extracting assignment and slide text into reusable statement files

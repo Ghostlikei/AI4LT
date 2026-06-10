@@ -1,0 +1,213 @@
+DSC 190/291 · Assignment 8
+UCSD · Spring 2026
+Released: Tuesday, May 26 · Due: Tuesday, June 2, 11:59 PM
+AI policy.  AI assistance is allowed and encouraged in this course. You may use AI to learn 
+the material, explore proof structure, test examples, debug code or formalizations, and improve 
+exposition. However, you are responsible for checking correctness and for standing behind every 
+proof step, derivation, formalization, experiment, and explanation you submit. Use AI as a 
+collaborator, not as an oracle: do not submit anything you cannot explain and verify. The AI 
+usage report is a required component of the assignment.
+Submission.  Submit a single PDF on Gradescope containing your write-up, figures, and 
+discussion. Also place any supporting artifacts for the assignment in your course repository 
+under the appropriate assignment directory. This may include code, Lean files, notebooks, 
+scripts, data, or other materials needed to inspect or reproduce your work. Your submission 
+should make it clear how the repository artifacts relate to the write-up.
+Part A: Choosing Regularization by Validation (40 points)
+Let 𝒲︀ be a convex parameter domain, and let ℓ(𝑤,𝑧)∈ [0,1] be convex in 𝑤 and 𝐺-Lipschitz 
+with respect to a norm ‖⋅‖:
+|ℓ(𝑤,𝑧)− ℓ(𝑤′,𝑧)| ≤ 𝐺‖𝑤− 𝑤′‖
+for all 𝑤,𝑤′,𝑧. Let Ψ be nonnegative and 𝛼-strongly convex with respect to ‖⋅‖.
+Split an i.i.d. sample into an independent training sample 𝑇 of size 𝑛𝑇 and validation sample 
+𝑉 of size 𝑛𝑉. For a finite grid
+Λ = {𝜆1,…,𝜆𝐾 } ⊂ (0,∞),
+define, for each 𝜆 ∈ Λ,
+ℎ𝜆 = 𝐴𝜆(𝑇)∈ arg min
+𝑤∈𝒲︀
+𝐿𝑇(𝑤)+ 𝜆Ψ(𝑤).
+Then choose
+̂𝜆 ∈ arg min
+𝜆∈Λ
+𝐿𝑉(ℎ𝜆),
+and output ℎ̂𝜆.
+1. (10 points) Validation selection for a finite random candidate set.
+Condition on predictors ℎ1,…,ℎ𝐾  that are independent of a validation set 𝑉 of size 𝑛𝑉, 
+and let
+̂𝑘 ∈ arg min
+𝑘∈[𝐾]
+𝐿𝑉(ℎ𝑘).
+Prove
+
+𝔼𝑉𝐿𝒟︀(ℎ̂𝑘)≤ min
+𝑘∈[𝐾]
+𝐿𝒟︀(ℎ𝑘)+ 2√log(2𝐾)
+2𝑛𝑉
+.
+You may use Hoeffding’s lemma for [0,1]-valued losses.
+2. (10 points) Oracle inequality over a grid.
+Apply the previous part conditionally on the training sample 𝑇, and then take expectation 
+over 𝑇. Prove
+𝔼𝐿𝒟︀(ℎ̂𝜆)≤ min
+𝜆∈Λ
+inf
+𝑢∈𝒲︀
+{ 𝐿𝒟︀(𝑢)+ 𝜆Ψ(𝑢)+ 2𝐺2
+𝜆𝛼𝑛𝑇
+} + 2√log(2𝐾)
+2𝑛𝑉
+.
+Explain why selecting among 𝐾 trained RERM rules contributes a validation term of 
+order √log 𝐾
+𝑛𝑉
+.
+3. (12 points) Adapting to an unknown comparator scale.
+For a comparator 𝑢 ∈ 𝒲︀, write 𝑎 = Ψ(𝑢) and define
+𝜆opt(𝑎)= √ 2𝐺2
+𝛼𝑎𝑛𝑇
+whenever 𝑎 > 0.
+Suppose 0 < 𝐵min ≤ 𝐵max and the grid Λ has the following property: for every 𝑎 ∈
+[𝐵2
+min,𝐵2
+max], there is a 𝜆 ∈ Λ satisfying
+𝜆opt(𝑎)
+2 ≤ 𝜆 ≤ 2𝜆opt(𝑎).
+Prove that for every 𝑢 ∈ 𝒲︀ with 𝐵2
+min ≤ Ψ(𝑢)≤ 𝐵2
+max,
+𝔼𝐿𝒟︀(ℎ̂𝜆)≤ 𝐿𝒟︀(𝑢)+ 5
+√
+2
+2 𝐺√Ψ(𝑢)
+𝛼𝑛𝑇
++ 2√log(2𝐾)
+2𝑛𝑉
+.
+Your proof should explicitly optimize the two-term expression
+𝜆Ψ(𝑢)+ 2𝐺2
+𝜆𝛼𝑛𝑇
+up to the factor-2 discretization of 𝜆.
+4. (8 points) A dyadic grid and the price of tuning.
+Construct a dyadic grid Λ satisfying the property in the previous part for all 𝑎 ∈
+[𝐵2
+min,𝐵2
+max], where 0 < 𝐵min ≤ 𝐵max. State the number of grid points 𝐾 as a function 
+of 𝐵max
+𝐵min
+.
+Assume 𝑛 is even, set 𝑛𝑇 = 𝑛𝑉 = 𝑛
+2, and simplify the resulting guarantee. Identify the two 
+statistical terms in the bound: the RERM learning term and the validation-selection term. 
+Identify the additional term caused by not knowing the comparator scale Ψ(𝑢) in advance.
+
+Part B: Approximate RERM and Optimization Error (35 points)
+Let 𝒲︀ be a convex parameter domain. Assume ℓ(𝑤,𝑧) is convex and 𝐺-Lipschitz with respect 
+to ‖⋅‖, and Ψ is nonnegative and 𝛼-strongly convex with respect to ‖⋅‖. For 𝜆 > 0 and a sample 
+𝑆 of size 𝑛, define
+𝐹𝑆(𝑤)= 𝐿𝑆(𝑤)+ 𝜆Ψ(𝑤), 𝑤𝑆 ∈ arg min
+𝑤∈𝒲︀
+𝐹𝑆(𝑤).
+Let the actual algorithm return ̃𝑤𝑆 ∈ 𝒲︀ satisfying the deterministic optimization guarantee
+𝐹𝑆(̃𝑤𝑆)≤ 𝐹𝑆(𝑤𝑆)+ 𝜂
+for every sample 𝑆, where 𝜂 ≥ 0.
+You may use the exact RERM movement bound from Week 8: if 𝑆 and 𝑆′ differ in one 
+example, then
+‖𝑤𝑆 − 𝑤𝑆′‖ ≤ 2𝐺
+𝜆𝛼𝑛.
+1. (7 points) Approximate minimizers are close to exact minimizers.
+Prove that for every sample 𝑆,
+‖̃𝑤𝑆 − 𝑤𝑆‖ ≤ √2𝜂
+𝜆𝛼.
+2. (8 points) Stability of approximate RERM.
+Let 𝑆 and 𝑆′ differ in one example. Prove that for every test point 𝑧,
+|ℓ(̃𝑤𝑆,𝑧)− ℓ(̃𝑤𝑆′,𝑧)| ≤ 2𝐺2
+𝜆𝛼𝑛 + 2𝐺√2𝜂
+𝜆𝛼.
+3. (8 points) Learning guarantee with optimization error.
+Prove the expected true-risk bound
+𝔼𝑆𝐿𝒟︀(̃𝑤𝑆)≤ 𝐿𝒟︀(𝑢)+ 𝜆Ψ(𝑢)+ 2𝐺2
+𝜆𝛼𝑛 + 𝐺√2𝜂
+𝜆𝛼
+for every comparator 𝑢 ∈ 𝒲︀.
+4. (7 points) How accurate must the optimizer be?
+Suppose 𝐵 > 0 and we want to compete with all 𝑢 ∈ 𝒲︀ satisfying Ψ(𝑢)≤ 𝐵2. Use
+𝜆 = √ 2𝐺2
+𝛼𝐵2𝑛
+and simplify the bound from the previous part.
+Give a sufficient condition on 𝜂 so that
+𝐺√2𝜂
+𝜆𝛼 ≤ 𝐺𝐵√𝛼𝑛.
+State the resulting excess-risk bound under this condition.
+
+5. (5 points) Soft-margin linear classification.
+Let
+ℓ(𝑤,(𝑥,𝑦))= (1− 𝑦⟨𝑤,𝑥⟩)+, 𝑦 ∈ {−1,+1}, ‖𝑥‖2 ≤ 𝑅,
+and use Ψ(𝑤)= 1
+2‖𝑤‖2
+2.
+Specialize the bound from the previous part to compete with all 𝑢 satisfying ‖𝑢‖2 ≤ 𝐵, 
+and state the approximate-RERM bound in terms of 𝑅,𝐵,𝑛, and 𝜂. Then give a sufficient 
+condition on 𝜂 under which the optimization-error term is no larger than 𝑅𝐵√𝑛 .
+Part C: A Weighted Euclidean Geometry (15 points)
+Assume linear prediction with scalar loss convex and 𝑔-Lipschitz in the prediction. Let 
+𝑏1,…,𝑏𝑑 > 0 and 𝑟1,…,𝑟𝑑 > 0. Suppose
+𝒞︀𝑏 = {𝑤 ∈ ℝ𝑑 : |𝑤𝑗| ≤ 𝑏𝑗  for all 𝑗}
+and |𝜑𝑗(𝑥)| ≤ 𝑟𝑗 for all 𝑥,𝑗.
+For 𝑄 = diag(𝑞1,…,𝑞𝑑) with 𝑞𝑗 > 0, define
+‖𝑤‖𝑄 = √𝑤⊤𝑄𝑤, Ψ𝑄(𝑤)= 1
+2𝑤⊤𝑄𝑤.
+You may use that Ψ𝑄 is 1-strongly convex with respect to ‖⋅‖𝑄.
+1. (5 points) Geometry quantities.
+Prove that
+‖𝜑(𝑥)‖2
+𝑄,∗ ≤ ∑
+𝑑
+𝑗=1
+𝑟2
+𝑗
+𝑞𝑗
+, sup
+𝑤∈𝒞︀𝑏
+Ψ𝑄(𝑤)= 1
+2 ∑
+𝑑
+𝑗=1
+𝑞𝑗𝑏2
+𝑗 .
+2. (5 points) Fixed 𝑄.
+Apply the Week 8 theorem and optimize over 𝜆 to get
+𝔼𝐿𝒟︀(𝐴𝜆(𝑆))≤ inf
+𝑤∈𝒞︀𝑏
+𝐿𝒟︀(𝑤)+ 2𝑔√𝑛√
+
+(∑
+𝑑
+𝑗=1
+𝑞𝑗𝑏2
+𝑗 )(∑
+𝑑
+𝑗=1
+𝑟2
+𝑗
+𝑞𝑗
+).
+3. (5 points) Best diagonal geometry.
+Optimize the right-hand side over 𝑞𝑗 > 0 and show that the best excess term is
+2𝑔√𝑛∑
+𝑑
+𝑗=1
+𝑏𝑗𝑟𝑗.
+Part D: AI Usage Report (10 points)
+
+Write a short report describing how you used AI in this assignment. Do not just list tools; 
+explain what role AI played in your work and how you checked the result. Address:
+1. Describe the parts of the assignment for which you used AI. For example: exploring 
+examples, proposing conjectures, checking algebra, debugging code or formalizations, or 
+improving exposition.
+2. Describe concrete AI suggestions you accepted and explain why.
+3. Describe concrete AI suggestions you rejected or substantially modified, and explain what 
+was wrong, incomplete, or unhelpful about them.
+4. Describe how you verified the correctness of what you submitted. Be specific about the 
+relevant kind of work in this assignment: proof, derivation, code, experiment, or exposition.
+AI workflow.  Also describe concrete updates to your AI workflow that resulted from this 
+assignment. This may include changes to CLAUDE.md, AGENTS.md, prompts, checklists, scripts, or 
+skills. Explain the 5 most recent changes you made to your AI workflow and why.
+If you did not use AI for some part of the assignment, say so explicitly.

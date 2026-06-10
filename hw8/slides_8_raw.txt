@@ -1,0 +1,634 @@
+Week 8: Stability and Regularized ERM
+Regularization as algorithmic stability
+Tianhao Wang
+tianhaowang@ucsd.edu
+UCSD · Spring 2026
+DSC 190/291 Topics: Learning Theory
+
+Contents
+Contents
+Bridge from Week 7 . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 2
+Generalization from Stability . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 5
+ERM Can Be Unstable . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 12
+Regularized ERM . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 16
+Strong Convexity and Stability . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 24
+Learning Convex Lipschitz Bounded Problems . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 35
+Examples and Takeaways . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 43
+Summary . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 48
+1 / 50
+
+Bridge from Week 7
+
+What Week 7 gave us, and did not
+Week 7 measured the hypothesis class: if the class is not too rich, then
+• 𝐿𝑆(ℎ) is close to 𝐿𝒟︀(ℎ) for all ℎ at once,
+• so any 𝖤𝖱𝖬 over that class is statistically reliable.
+Uniform convergence
+Control the gap supℎ∈ℋ︀(𝐿𝒟︀(ℎ)− 𝐿𝑆(ℎ)) by 
+measuring the loss class ℱ︀.
+Tools: pseudo-dimension, covering numbers, 
+Rademacher complexity, fat-shattering.
+Scale-sensitive control
+For real-valued predictors the bound depends 
+on scale, e.g. ‖𝑤‖ or margin, not on ambient 
+dimension.
+The bound is uniform over the class:
+• the same gap bound holds for every ℎ ∈ ℋ︀,
+• so it depends on the class, not on the rule that selects ℎ.
+Week 7 analyzed the class; Week 8 analyzes the learning rule.
+3 / 50
+
+Two routes to generalization
+Can a property of the rule itself certify generalization?
+Class-level route
+Show 𝐿𝒟︀(ℎ)≈ 𝐿𝑆(ℎ) for many hypotheses 
+at once.
+Then any 𝖤𝖱𝖬 over the class learns.
+Tools: VC, Rademacher, fat-shattering.
+Rule-level route
+Show the returned predictor barely changes 
+when one training point changes.
+Then 𝐿𝑆(𝐴(𝑆)) estimates 𝐿𝒟︀(𝐴(𝑆)).
+This property of the rule is called stability.
+A stable learning rule generalizes, and regularization is what makes a rule stable.
+4 / 50
+
+Generalization from Stability
+
+Learning rule and notation
+Recall the loss and its population and empirical risk:
+ℓ : ℋ︀× 𝒵︀→ ℝ, 𝐿𝒟︀(ℎ)= 𝔼𝑧∼𝒟︀ℓ(ℎ,𝑧), 𝐿𝑆(ℎ)= 1
+𝑛∑
+𝑛
+𝑖=1
+ℓ(ℎ,𝑧𝑖).
+Here ℎ ∈ ℋ︀ is a hypothesis and 𝑧 ∈ 𝒵︀ an example.
+This week’s object of study is the learning rule itself:
+𝐴 : 𝒵︀𝑛 → ℋ︀, ℎ𝑆 = 𝐴(𝑆).
+𝐴 takes a sample of size 𝑛 to its returned hypothesis.
+Stability, defined next, will be a property of this map 𝐴.
+6 / 50
+
+Replacement stability
+A stable rule’s output is barely affected when one training point is replaced.
+Write 𝑆 and its one-point replacement 𝑆′:
+𝑆 = (𝑧1,…,𝑧𝑖,…,𝑧𝑛), 𝑆′ = (𝑧1,…,𝑧′
+𝑖,…,𝑧𝑛),
+so 𝑆′ is 𝑆 with 𝑧𝑖 replaced by another point 𝑧′
+𝑖.
+Definition: uniform replacement stability
+𝐴 is 𝛽(𝑛)-stable if, for every 𝑆, every 𝑖∈ [𝑛], and replacement 𝑧′
+𝑖,
+|ℓ(𝐴(𝑆),𝑧𝑖)− ℓ(𝐴(𝑆′),𝑧𝑖)| ≤ 𝛽(𝑛).
+Small 𝛽(𝑛): replacing one training point barely moves the loss at that point.
+7 / 50
+
+Stability implies generalization
+Theorem
+If 𝐴 is 𝛽(𝑛)-stable, then for every distribution 𝒟︀,
+𝔼𝑆∼𝒟︀𝑛𝐿𝒟︀(𝐴(𝑆))≤ 𝔼𝑆∼𝒟︀𝑛𝐿𝑆(𝐴(𝑆))+ 𝛽(𝑛).
+Uniform convergence holds with probability 1− 𝛿, for every ℎ ∈ ℋ︀:
+∀ℎ ∈ ℋ︀: 𝐿𝒟︀(ℎ)≤ 𝐿𝑆(ℎ)+ 𝜀.
+The stability bound differs on two counts:
+• it is in expectation over 𝑆, a weaker form than high-probability;
+• it needs no assumption on the class, and controls the returned 𝐴(𝑆).
+Stability gives generalization for the returned predictor, not the whole class.
+8 / 50
+
+Proof setup: exchangeability
+Let
+𝑆 = (𝑧1,…,𝑧𝑛)∼ 𝒟︀𝑛
+and draw an independent copy 𝑧′
+𝑖 ∼ 𝒟︀.
+Replace coordinate 𝑖:
+𝑆′ = (𝑧1,…,𝑧′
+𝑖,…,𝑧𝑛).
+Since 𝑧𝑖 and 𝑧′
+𝑖 have the same distribution and are independent of the other coordinates,
+(𝑆′,𝑧𝑖) has the same distribution as (𝑆,𝑧)
+for a fresh test point 𝑧 ∼ 𝒟︀.
+Probability is used only here; the rest of the proof is algebra.
+9 / 50
+
+Proof: applying stability
+For each coordinate 𝑖:
+𝔼𝑆𝐿𝒟︀(𝐴(𝑆))= 𝔼𝑆,𝑧ℓ(𝐴(𝑆),𝑧) (definition of𝐿𝒟︀)
+= 𝔼𝑆,𝑧′𝑖
+ℓ(𝐴(𝑆′),𝑧𝑖) (exchangeability)
+≤ 𝔼𝑆ℓ(𝐴(𝑆),𝑧𝑖)+ 𝛽(𝑛) (stability)
+The left side is constant in 𝑖:
+𝔼𝑆𝐿𝒟︀(𝐴(𝑆))≤ 1
+𝑛∑
+𝑛
+𝑖=1
+𝔼𝑆ℓ(𝐴(𝑆),𝑧𝑖)+ 𝛽(𝑛) (average over𝑖)
+= 𝔼𝑆𝐿𝑆(𝐴(𝑆))+ 𝛽(𝑛) (definition of𝐿𝑆)
+Generalization follows when replacing one point barely changes the returned loss.
+10 / 50
+
+Stability is not enough by itself
+Stability controls the generalization gap; learning needs more.
+Stability gives
+𝔼𝐿𝒟︀(𝐴(𝑆))≤ 𝔼𝐿𝑆(𝐴(𝑆))+ 𝛽(𝑛)
+Empirical loss tracks population loss.
+Still needed
+• the rule must make 𝐿𝑆(𝐴(𝑆)) small
+• a rule ignoring the sample is stable but 
+useless
+Plain 𝖤𝖱𝖬 minimizes the empirical loss by construction, but is it stable?
+Learning needs a rule that is stable and drives the empirical loss down.
+11 / 50
+
+ERM Can Be Unstable
+
+ERM may jump when one point changes
+Consider linear prediction in ℝ2 with absolute loss:
+ℓ(𝑤,(𝑥,𝑦))= |⟨𝑤,𝑥⟩ − 𝑦|, ‖𝑤‖2 ≤ 2.
+Define 𝐴(𝑆) to be an empirical risk minimizer for the sample.
+The first 𝑛− 1 points are
+𝑧1,…,𝑧𝑛−1 : 𝑥 = (1,0),𝑦 = 1,
+and the final point is either
+𝑧𝑛 : 𝑥 = (0,1),𝑦 = 1, 𝑧′
+𝑛 : 𝑥 = (0,1),𝑦 = −1.
+Replacing just one point changes the empirical minimizer from (1,1) to (1,−1).
+13 / 50
+
+Checking the ERM calculation
+Recall the two samples, sharing 𝑛− 1 points at 𝑥 = (1,0),𝑦 = 1:
+• 𝑆: final point 𝑧𝑛 at 𝑥 = (0,1),𝑦 = 1
+• 𝑆′: final point 𝑧′
+𝑛 at 𝑥 = (0,1),𝑦 = −1
+For the original sample, empirical absolute loss is
+𝐿𝑆(𝑤)= 𝑛− 1
+𝑛 |𝑤1 − 1| + 1
+𝑛|𝑤2 − 1|.
+The minimizer in the ball ‖𝑤‖2 ≤ 2 is 𝐴(𝑆)= (1,1).
+For the replaced sample,
+𝐿𝑆 ′(𝑤)= 𝑛− 1
+𝑛 |𝑤1 − 1| + 1
+𝑛|𝑤2 + 1|,
+and the minimizer is 𝐴(𝑆′)= (1,−1).
+Both minimizers fit their own sample, but their losses differ on the same test point.
+14 / 50
+
+Consequence for stability
+Recall the minimizers: 𝐴(𝑆)= (1,1) and 𝐴(𝑆′)= (1,−1).
+On the original last point 𝑧𝑛 (with 𝑥 = (0,1), 𝑦 = 1),
+ℓ(𝐴(𝑆),𝑧𝑛)= 0, ℓ(𝐴(𝑆′),𝑧𝑛)= 2.
+Thus the loss can change by a constant even as 𝑛 grows.
+Plain 𝖤𝖱𝖬 can be unstable even where uniform convergence holds.
+We need a mechanism that makes the returned predictor insensitive to one training example.
+15 / 50
+
+Regularized ERM
+
+Add a stabilizing term
+In the example, one replacement moved the empirical minimizer from (1,1) to (1,−1).
+Regularized empirical risk minimization adds a penalty to resist such jumps:
+𝐴𝜆(𝑆)= 𝖱𝖤𝖱𝖬𝜆(𝑆)= arg min
+𝑤∈𝒲︀
+𝐿𝑆(𝑤)+ 𝜆Ψ(𝑤).
+Here 𝒲︀ is the parameter domain, 𝜆 > 0, and Ψ : 𝒲︀→ ℝ is the regularizer.
+Regularization changes the learning rule, not just the set of predictors.
+17 / 50
+
+Two views of regularization
+The same low-norm bias can support two different generalization arguments.
+View What is controlled Generalization certificate
+Uniform 
+convergence A whole class, e.g. ‖𝑤‖ ≤ 𝐵 𝐿𝑆(𝑤)≈ 𝐿𝒟︀(𝑤) for all 𝑤 in the class
+Stability The rule 𝐴𝜆(𝑆) Replacing one point barely changes the 
+returned loss
+Week 7 controlled a class; Week 8 controls the learning rule.
+18 / 50
+
+Warm-up: regularized absolute loss
+Return to linear prediction with absolute loss and ‖𝑥‖2 ≤ 𝑅:
+ℓ(𝑤,(𝑥,𝑦))= |⟨𝑤,𝑥⟩ − 𝑦|.
+Use the regularized rule
+𝐴𝜆(𝑆)= arg min
+𝑤∈ℝ𝑑
+𝐿𝑆(𝑤)+ 𝜆
+2‖𝑤‖2
+2.
+Claim for now
+The regularized rule is replacement stable with 𝛽(𝑛)≤ 2𝑅2
+𝜆𝑛 .
+Recall: this means that for every one-point replacement 𝑆′ of 𝑆,
+|ℓ(𝐴𝜆(𝑆),𝑧𝑖)− ℓ(𝐴𝜆(𝑆′),𝑧𝑖)| ≤ 2𝑅2
+𝜆𝑛.
+Regularization gives a quantitative stability bound for the returned rule.
+19 / 50
+
+Warm-up: learning a norm ball
+Suppose we want to compete with all 𝑤 satisfying ‖𝑤‖2 ≤ 𝐵. For any such 𝑤:
+𝔼𝐿𝒟︀(𝐴𝜆(𝑆))≤ 𝔼𝐿𝑆(𝐴𝜆(𝑆))+ 2𝑅2
+𝜆𝑛 (stability)
+≤ 𝔼(𝐿𝑆(𝐴𝜆(𝑆))+ 𝜆
+2‖𝐴𝜆(𝑆)‖2
+2) + 2𝑅2
+𝜆𝑛 (nonnegative penalty)
+≤ 𝔼(𝐿𝑆(𝑤)+ 𝜆
+2‖𝑤‖2
+2) + 2𝑅2
+𝜆𝑛 (optimality)
+≤ 𝐿𝒟︀(𝑤)+ 𝜆
+2𝐵2 + 2𝑅2
+𝜆𝑛 (fixed comparator)
+Choose 𝜆 = Θ( 𝑅
+𝐵√𝑛): 𝔼𝐿𝒟︀(𝐴𝜆(𝑆))≤ inf‖𝑤‖2≤𝐵 𝐿𝒟︀(𝑤)+ 𝑂(𝐵𝑅√𝑛).
+𝖱𝖤𝖱𝖬 learns the norm ball through stability, not uniform convergence.
+20 / 50
+
+Convex Lipschitz bounded problems
+The warm-up used three facts about absolute-loss linear prediction:
+• 𝐿𝑆(𝑤) is convex in 𝑤;
+• small movement in 𝑤 gives small change in each loss;
+• we compare against predictors of bounded size.
+We isolate these facts so the same stability argument applies beyond Euclidean absolute loss.
+A convex Lipschitz bounded problem has:
+• Convexity: ℓ(𝑤,𝑧) convex in 𝑤;
+• Lipschitzness: |ℓ(𝑤,𝑧)− ℓ(𝑤′,𝑧)| ≤ 𝐺‖𝑤− 𝑤′‖;
+• Bounded comparison: comparator set such as ‖𝑤‖ ≤ 𝐵 or Ψ(𝑤)≤ 𝐵2.
+21 / 50
+
+Linear prediction as a convex Lipschitz problem
+For linear prediction, let
+ℓ(𝑤,(𝑥,𝑦))= loss(⟨𝑤,𝜑(𝑥)⟩,𝑦).
+Assume:
+• Scalar convexity: loss(̂𝑦,𝑦) is convex in ̂𝑦;
+• Scalar Lipschitzness: |loss(𝑎,𝑦)− loss(𝑏,𝑦)| ≤ 𝑔|𝑎 − 𝑏|;
+• Feature scale: ‖𝜑(𝑥)‖2 ≤ 𝑅.
+Then
+|ℓ(𝑤,𝑧)− ℓ(𝑤′,𝑧)| ≤ 𝑔|⟨𝑤− 𝑤′,𝜑(𝑥)⟩|
+≤ 𝑔𝑅‖𝑤− 𝑤′‖2.
+So the problem is convex and 𝐺 = 𝑔𝑅-Lipschitz in ‖⋅‖2.
+Scalar Lipschitzness plus feature scale gives the parameter Lipschitz bound 𝐺 = 𝑔𝑅.
+22 / 50
+
+Euclidean convex Lipschitz theorem
+The warm-up extends from absolute loss to any convex 𝐺-Lipschitz objective.
+Euclidean RERM bound
+Suppose ℓ(𝑤,𝑧) is convex and 𝐺-Lipschitz with respect to ‖⋅‖2.
+Consider the regularized empirical risk minimization 𝐴𝜆(𝑆)= arg min𝑤 𝐿𝑆(𝑤)+ 𝜆
+2‖𝑤‖2
+2.
+Then 𝐴𝜆 is replacement stable with 𝛽(𝑛)≤ 2𝐺2
+𝜆𝑛 .
+Competing with ‖𝑤‖2 ≤ 𝐵 and choosing 𝜆 = Θ( 𝐺
+𝐵√𝑛) gives
+𝔼𝐿𝒟︀(𝐴𝜆(𝑆))≤ inf
+‖𝑤‖2≤𝐵
+𝐿𝒟︀(𝑤)+ 𝑂( 𝐺𝐵√𝑛).
+The Euclidean theorem replaces the absolute-loss scale 𝑅 by the general Lipschitz scale 𝐺.
+23 / 50
+
+Strong Convexity and Stability
+
+Stability needs a sharp minimum
+• A rule is stable when swapping one example barely moves its minimizer.
+• Whether the minimizer moves depends on the shape of the objective near its minimum:
+𝑤𝑤′
+minimizer jumps
+Flat valley
+𝑤𝑤′
+minimizer barely moves
+Sharp minimum
+Solid: the objective. Dashed: after one example is swapped. 𝑤,𝑤′: the two minimizers.
+A flat valley lets the minimizer jump; a sharp minimum pins it down.
+25 / 50
+
+Strong convexity
+We name the property that forces a sharp minimum:
+Definition: strong convexity
+Ψ is 𝛼-strongly convex with respect to ‖⋅‖ if for every 𝑤,𝑤′,
+Ψ(𝑤′)≥ Ψ(𝑤)+ ⟨∇Ψ(𝑤),𝑤′ − 𝑤⟩ + 𝛼
+2‖𝑤′ − 𝑤‖2.
+• Convexity is the same inequality without the last term.
+• Strong convexity adds the gap 𝛼
+2‖𝑤′ − 𝑤‖2.
+• 𝛼 > 0 measures that gap; a larger 𝛼 means a sharper minimum.
+26 / 50
+
+Strong convexity around a minimizer
+What does the definition say at the minimum? Let 𝑤0 minimize Ψ, so ∇Ψ(𝑤0)= 0.
+Setting the base point to 𝑤0, the linear term drops out, and for every 𝑤,
+Ψ(𝑤)≥ Ψ(𝑤0)+ 𝛼
+2‖𝑤− 𝑤0‖2.
+This is the sharp minimum made precise: leaving 𝑤0 raises Ψ at a guaranteed rate.
+Read in reverse, a small regularizer value forces a small distance from 𝑤0:
+Ψ(𝑤)− Ψ(𝑤0)≤ 𝐵2 → ‖𝑤− 𝑤0‖ ≤ √ 2
+𝛼𝐵.
+Strong convexity turns a small regularizer value into a bound on distance from the minimizer.
+27 / 50
+
+Example: squared Euclidean norm
+Does a natural regularizer have this property? Take the one from the Euclidean theorem,
+Ψ(𝑤)= 1
+2‖𝑤‖2
+2, ∇Ψ(𝑤)= 𝑤.
+Write 𝑤′ = 𝑤+ (𝑤′ − 𝑤) and expand the square:
+Ψ(𝑤′)= 1
+2‖𝑤+ (𝑤′ − 𝑤)‖2
+2
+= 1
+2‖𝑤‖2
+2 + ⟨𝑤,𝑤′ − 𝑤⟩ + 1
+2‖𝑤′ − 𝑤‖2
+2
+= Ψ(𝑤)+ ⟨∇Ψ(𝑤),𝑤′ − 𝑤⟩ + 1
+2‖𝑤′ − 𝑤‖2
+2.
+This matches the definition exactly, with equality and 𝛼 = 1.
+So Ψ is 1-strongly convex with respect to ‖⋅‖2.
+28 / 50
+
+Strong convexity: regularizer and objective
+If Ψ is 𝛼-strongly convex:
+• 𝜆Ψ is 𝜆𝛼-strongly convex.
+• If 𝑓 is convex, then 𝑓 + 𝜆Ψ is 𝜆𝛼-strongly convex.
+So for any convex loss, 𝐿𝑆(𝑤)+ 𝜆Ψ(𝑤) is 𝜆𝛼-strongly convex.
+The regularizer Ψ is a free choice; strongly convex options for different norms:
+Regularizer Strongly convex in
+Ψ(𝑤)= 1
+2‖𝑤‖2
+2 ‖⋅‖2
+Ψ(𝑤)= 1
+2‖𝑤‖2
+𝑝 (1 < 𝑝 ≤ 2) ‖⋅‖𝑝
+negative entropy: Ψ(𝑤)= ∑𝑗 𝑤𝑗 log 𝑤𝑗 ‖⋅‖1
+29 / 50
+
+RERM stability theorem
+The Euclidean theorem extends to any 𝛼-strongly convex Ψ:
+Theorem: stability of RERM
+Assume:
+• ℓ(𝑤,𝑧) is convex and 𝐺-Lipschitz with respect to ‖⋅‖.
+• Ψ is 𝛼-strongly convex with respect to ‖⋅‖.
+Let
+𝐴𝜆(𝑆)= arg min
+𝑤∈𝒲︀
+𝐿𝑆(𝑤)+ 𝜆Ψ(𝑤).
+Then 𝐴𝜆 is replacement stable with
+𝛽(𝑛)≤ 2𝐺2
+𝜆𝛼𝑛.
+At Ψ = 1
+2‖𝑤‖2
+2 and 𝛼 = 1, this recovers the Euclidean bound 𝛽(𝑛)≤ 2𝐺2
+𝜆𝑛.
+30 / 50
+
+Proof setup: compare two minimizers
+Let 𝑆 and 𝑆′ differ only in coordinate 𝑖. Set
+𝐹𝑆(𝑢)= 𝐿𝑆(𝑢)+ 𝜆Ψ(𝑢), 𝑤 = 𝐴𝜆(𝑆), 𝑤′ = 𝐴𝜆(𝑆′).
+Each 𝐹𝑆,𝐹𝑆 ′ is 𝜆𝛼-strongly convex with 𝑤,𝑤′ as its minimizer:
+𝐹𝑆(𝑤′)≥ 𝐹𝑆(𝑤)+ 𝜆𝛼
+2 ‖𝑤− 𝑤′‖2,
+𝐹𝑆 ′(𝑤)≥ 𝐹𝑆 ′(𝑤′)+ 𝜆𝛼
+2 ‖𝑤− 𝑤′‖2.
+They share 𝜆Ψ, so 𝐹𝑆 − 𝐹𝑆 ′ depends only on coordinate 𝑖:
+𝐹𝑆(𝑢)− 𝐹𝑆 ′(𝑢)= 1
+𝑛(ℓ(𝑢,𝑧𝑖)− ℓ(𝑢,𝑧′
+𝑖)).
+Both objectives are strongly convex, and their shared 𝜆Ψ cancels under subtraction.
+31 / 50
+
+Proof: from minimizer shift to loss
+Step 1. Add the two inequalities. The shared 𝜆Ψ cancels:
+𝜆𝛼‖𝑤− 𝑤′‖2 ≤ 1
+𝑛(ℓ(𝑤′,𝑧𝑖)− ℓ(𝑤,𝑧𝑖)+ ℓ(𝑤,𝑧′
+𝑖)− ℓ(𝑤′,𝑧′
+𝑖)).
+Step 2. By Lipschitzness, each of the two loss differences is at most 𝐺‖𝑤− 𝑤′‖:
+𝜆𝛼‖𝑤− 𝑤′‖2 ≤ 2𝐺
+𝑛‖𝑤− 𝑤′‖ ⇒ ‖𝑤− 𝑤′‖ ≤ 2𝐺
+𝜆𝛼𝑛.
+Step 3. The loss at any test point shifts by at most 𝐺‖𝑤− 𝑤′‖:
+|ℓ(𝐴(𝑆),𝑧)− ℓ(𝐴(𝑆′),𝑧)| ≤ 2𝐺2
+𝜆𝛼𝑛= 𝛽(𝑛).
+Strong convexity bounds ‖𝑤− 𝑤′‖; Lipschitzness converts this to a loss bound.
+32 / 50
+
+Stability plus empirical optimality
+We now use Ψ ≥ 0.
+Optimality. For any comparator 𝑤, 𝐴𝜆(𝑆) minimizes 𝐿𝑆 + 𝜆Ψ:
+𝐿𝑆(𝐴𝜆(𝑆))+ 𝜆Ψ(𝐴𝜆(𝑆))≤ 𝐿𝑆(𝑤)+ 𝜆Ψ(𝑤).
+Drop 𝜆Ψ(𝐴𝜆(𝑆))≥ 0, then take 𝔼𝑆  (using 𝔼𝐿𝑆(𝑤)= 𝐿𝒟︀(𝑤)):
+𝔼𝐿𝑆(𝐴𝜆(𝑆))≤ 𝐿𝒟︀(𝑤)+ 𝜆Ψ(𝑤).
+Stability gives 𝔼𝐿𝒟︀(𝐴𝜆(𝑆))≤ 𝔼𝐿𝑆(𝐴𝜆(𝑆))+ 𝛽(𝑛), so
+𝔼𝐿𝒟︀(𝐴𝜆(𝑆))≤ 𝐿𝒟︀(𝑤)+ 𝜆Ψ(𝑤)+ 𝛽(𝑛).
+Optimality + Ψ ≥ 0 + stability → comparator bound for any 𝑤.
+33 / 50
+
+RERM learning theorem
+Substituting 𝛽(𝑛)≤ 2𝐺2
+𝜆𝛼𝑛 into the previous bound:
+Theorem: learning from stable RERM
+Assume ℓ convex and 𝐺-Lipschitz, Ψ 𝛼-strongly convex and nonnegative. Then for every 
+comparator 𝑤 ∈ 𝒲︀,
+𝔼𝑆∼𝒟︀𝑛𝐿𝒟︀(𝐴𝜆(𝑆))≤ 𝐿𝒟︀(𝑤)+ 𝜆Ψ(𝑤)+ 2𝐺2
+𝜆𝛼𝑛.
+Optimizing over a comparator set 𝒞︀⊆ 𝒲︀ with sup𝑤∈𝒞︀Ψ(𝑤) finite:
+𝔼𝐿𝒟︀(𝐴𝜆(𝑆))≤ inf
+𝑤∈𝒞︀
+𝐿𝒟︀(𝑤)+ 𝜆 sup
+𝑤∈𝒞︀
+Ψ(𝑤)+ 2𝐺2
+𝜆𝛼𝑛.
+Two pieces: the comparator’s value 𝐿𝒟︀(𝑤)+ 𝜆Ψ(𝑤), plus the stability cost.
+34 / 50
+
+Learning Convex Lipschitz Bounded 
+Problems
+
+Main learning guarantee
+Recall: for a comparator set 𝒞︀⊆ 𝒲︀,
+𝔼𝐿𝒟︀(𝐴𝜆(𝑆))≤ inf
+𝑤∈𝒞︀
+𝐿𝒟︀(𝑤)+ 𝜆 sup
+𝑤∈𝒞︀
+Ψ(𝑤)+ 2𝐺2
+𝜆𝛼𝑛.
+Let 𝐵2 ≔ sup𝑤∈𝒞︀Ψ(𝑤), the regularizer’s range on 𝒞︀.
+Balance the two 𝜆-dependent terms by setting 𝜆𝐵2 = 2𝐺2/(𝜆𝛼𝑛):
+𝜆 = √ 2𝐺2
+𝛼𝐵2𝑛.
+Plugging back:
+𝔼𝐿𝒟︀(𝐴𝜆(𝑆))≤ inf
+𝑤∈𝒞︀
+𝐿𝒟︀(𝑤)+ 𝑂( 𝐺𝐵√𝛼𝑛).
+Optimal 𝜆 balances bias and stability, giving the 1/√𝑛 rate.
+36 / 50
+
+Choosing the geometry
+To learn with stability, choose Ψ so that:
+• Ψ is 𝛼-strongly convex with respect to the same norm used for Lipschitzness.
+• 0 ≤ Ψ(𝑤)≤ 𝐵2 on the comparator set.
+Then the stability-based excess term scales as
+𝑂( 𝐺𝐵√𝛼𝑛).
+Comparator geometry Regularizer Effect
+‖𝑤‖2 ≤ 𝐵 1
+2‖𝑤‖2
+2 dimension-free Euclidean scale
+‖𝑤‖𝑝 ≤ 𝐵 1
+2‖𝑤‖2
+𝑝 𝛼 = 𝑝 − 1, cost ∼ 1/√𝑝 − 1
+simplex / ℓ1 negative entropy: ∑𝑗 𝑤𝑗 log 𝑤𝑗 logarithmic dependence on dimension
+Each choice of Ψ stabilizes the learning rule in a chosen geometry.
+37 / 50
+
+Data scale: the dual norm
+Changing geometry changes 𝐺, the loss’s Lipschitz constant in the chosen norm.
+Scalar Lipschitzness, then Cauchy-Schwarz in ℓ2:
+|ℓ(𝑤,𝑧)− ℓ(𝑤′,𝑧)| ≤ 𝑔|⟨𝑤− 𝑤′,𝜑(𝑥)⟩|
+≤ 𝑔‖𝑤− 𝑤′‖2‖𝜑(𝑥)‖2.
+For a general norm ‖⋅‖, the second step becomes Hölder’s inequality:
+⟨𝑢,𝑣⟩ ≤ ‖𝑢‖ ⋅ ‖𝑣‖∗, ‖𝑣‖∗ ≔ sup
+‖𝑢‖≤1
+⟨𝑢,𝑣⟩.
+A 𝑔-Lipschitz scalar loss is then 𝐺-Lipschitz in ‖⋅‖ with 𝐺 = 𝑔‖𝜑(𝑥)‖∗.
+Dual pairings: ℓ2 ↔︎ℓ2, ℓ𝑝 ↔︎ℓ𝑞 (conjugate 1
+𝑝 + 1
+𝑞 = 1), ℓ1 ↔︎ℓ∞.
+The feature scale entering 𝐺 is measured in the dual norm.
+38 / 50
+
+Geometry example: quadratic norm
+Generalize the Euclidean row: replace 1
+2‖𝑤‖2
+2 by 1
+2𝑤⊤𝑄𝑤 for positive definite 𝑄.
+Define the 𝑄-norm and regularizer
+‖𝑤‖𝑄 = √𝑤⊤𝑄𝑤, Ψ(𝑤)= 1
+2𝑤⊤𝑄𝑤.
+Then Ψ is 1-strongly convex with respect to ‖⋅‖𝑄.
+The data scale is measured in the dual norm: ‖𝜑(𝑥)‖𝑄,∗ = √𝜑(𝑥)⊤𝑄−1𝜑(𝑥).
+If ‖𝑤‖𝑄 ≤ 𝐵 and ‖𝜑(𝑥)‖𝑄,∗ ≤ 𝑅𝑄, then the excess scale is
+𝑂( 𝐵𝑅𝑄√𝑛 ).
+𝑄 scales 𝑤 and 𝜑(𝑥) anisotropically, and 𝑄 = 𝐼 recovers ℓ2.
+39 / 50
+
+Geometry example: ℓ𝑝 norm
+Interpolate between ℓ2 and ℓ1: take the comparator in ℓ𝑝 for 1 < 𝑝 ≤ 2.
+The regularizer Ψ(𝑤)= 1
+2‖𝑤‖2
+𝑝 is (𝑝 − 1)-strongly convex in ‖⋅‖𝑝.
+Why 𝑝 − 1? Hölder bounds the diagonal Hessian term (rank-one part ≥ 0):
+⟨𝑢,∇2Ψ(𝑤)𝑢⟩ ≥ (𝑝 − 1)‖𝑢‖2
+𝑝.
+If ‖𝑤‖𝑝 ≤ 𝐵 and ‖𝜑(𝑥)‖𝑞 ≤ 𝑅𝑞 (𝑞 conjugate to 𝑝), the excess scale is
+𝑂( 𝐵𝑅𝑞
+√(𝑝 − 1)𝑛
+) .
+Smaller 𝑝 moves the geometry toward ℓ1, at a stability cost of 1/(𝑝 − 1).
+40 / 50
+
+Geometry example: entropy on the simplex
+Comparator: a distribution over 𝑑 items on Δ𝑑; want 𝑑 only via log 𝑑.
+Entropy regularizer Ψ(𝑤)= ∑𝑑
+𝑗=1 𝑤𝑗 log(𝑑𝑤𝑗): the factor 𝑑 gives 0 ≤ Ψ ≤ log 𝑑.
+1-strongly convex in ‖⋅‖1 (so 𝛼 = 1): the strong-convexity gap is KL(𝑤′ ∥ 𝑤), and Pinsker gives
+KL(𝑤′ ∥ 𝑤)≥ 1
+2‖𝑤′ − 𝑤‖2
+1.
+Dual is ℓ∞: with ‖𝜑(𝑥)‖∞ ≤ 𝑅, the excess scale is 𝑂(𝑅√log 𝑑
+𝑛 ).
+Over the same simplex, ℓ𝑝 at 𝑝 = 1+ 1/ log 𝑑 has 𝐵 = 𝑂(1) but 𝛼 = 1/ log 𝑑.
+Same simplex: the √log 𝑑 sits in entropy’s range 𝐵2, in ℓ𝑝’s small 𝛼.
+41 / 50
+
+What changed from Week 7?
+Question Week 7 answer Week 8 answer
+Why generalization? Small class complexity Stable learning rule
+Main object Loss class ℱ︀ Algorithm 𝐴(𝑆)
+Tool Rademacher / fat-shattering Replacement stability
+Regularization role Bounds scale of competitors Creates strong convexity and stability
+Week 8′s new mechanism is strong convexity making the learning rule stable.
+42 / 50
+
+Examples and Takeaways
+
+Example: hinge loss classification
+Let
+ℓ(𝑤,(𝑥,𝑦))= max(0,1− 𝑦⟨𝑤,𝑥⟩), 𝑦 ∈ {±1}, ‖𝑥‖2 ≤ 𝑅.
+Hinge loss is convex and 1-Lipschitz in the score ⟨𝑤,𝑥⟩, hence 𝑅-Lipschitz in 𝑤 (𝐺 = 𝑅).
+The soft-margin SVM is ℓ2-regularized hinge minimization:
+𝐴𝜆(𝑆)= arg min
+𝑤∈𝒲︀
+1
+𝑛∑
+𝑛
+𝑖=1
+max(0,1− 𝑦𝑖⟨𝑤,𝑥𝑖⟩)+ 𝜆
+2‖𝑤‖2
+2.
+By the Euclidean theorem, it satisfies the stability-based guarantee against all ‖𝑤‖2 ≤ 𝐵.
+The soft-margin SVM generalizes because its regularizer makes the rule stable.
+44 / 50
+
+Missing-data example: setup
+Can stability learn a problem where uniform convergence fails? This example shows it can.
+Predictors 𝑤 live in the unit ball ‖𝑤‖2 ≤ 1 of an infinite-dimensional Hilbert space.
+Each data point reveals a random subset 𝐼 of coordinates, all observed values 0:
+𝑧 = (𝐼,𝑧𝐼), 𝑧𝑗 = 0, ℓ(𝑤,𝑧)= ∑
+𝑗∈𝐼
+(𝑤𝑗 − 𝑧𝑗)
+2
+.
+Each coordinate lies in 𝐼 independently with probability 1
+2, so 𝐿𝒟︀(𝑤)= 1
+2‖𝑤‖2
+2.
+The population problem is trivial: the minimizer is 𝑤 = 0, with 𝐿𝒟︀(0)= 0.
+45 / 50
+
+Missing-data example: uniform convergence fails
+For a sample of size 𝑛, each coordinate is unseen with probability 2−𝑛 > 0.
+In infinite dimension, some coordinate 𝑗 is then never observed.
+The spike 𝑒𝑗 has zero empirical loss but population loss 1
+2:
+𝐿𝑆(𝑒𝑗)= 0, 𝐿𝒟︀(𝑒𝑗)= 1
+2.
+So at every sample size, uniform convergence cannot hold:
+sup
+‖𝑤‖2≤1
+(𝐿𝒟︀(𝑤)− 𝐿𝑆(𝑤))≥ 1
+2.
+The class-level route fails, and an arbitrary 𝖤𝖱𝖬 can pick 𝑒𝑗 and never generalize.
+46 / 50
+
+Missing-data example: RERM still learns
+The loss is convex (a sum of squares) and 2-Lipschitz on the unit ball:
+|ℓ(𝑤,𝑧)− ℓ(𝑢,𝑧)| = |∑
+𝑗∈𝐼
+(𝑤𝑗 − 𝑢𝑗)(𝑤𝑗 + 𝑢𝑗)|
+≤ ‖𝑤− 𝑢‖2‖𝑤+ 𝑢‖2 ≤ 2‖𝑤− 𝑢‖2.
+A convex Lipschitz bounded problem with 𝐺 ≤ 2, 𝐵 = 1, so RERM’s bound is dimension-free:
+𝔼𝐿𝒟︀(𝐴𝜆(𝑆))≤ 𝐿𝒟︀(0)+ 𝑂( 𝐺𝐵√𝑛) = 𝑂(1/√𝑛).
+It holds even in infinite dimension, where RERM picks the min-norm zero-loss solution 𝑤 = 0.
+Stability learns where uniform convergence fails: the gain of the Week 8 route.
+47 / 50
+
+Summary
+
+Week 8 summary
+Concept Takeaway
+Stability A stable rule is insensitive to replacing one sample
+Generalization 𝔼𝐿𝒟︀(𝐴(𝑆))≤ 𝔼𝐿𝑆(𝐴(𝑆))+ 𝛽(𝑛)
+ERM May be unstable even for convex Lipschitz problems
+RERM Adds strongly convex regularization
+Strong convexity Converts one replacement into small solution movement
+Convex Lipschitz bounded problems RERM learns with excess 𝑂(𝐺 𝐵√𝛼𝑛)
+49 / 50
+
+One-slide mental model
+strongly convex regularization
+↓
+one replacement changes the minimizer little
+↓
+returned predictor is stable
+↓
+empirical loss estimates population loss
+Strongly convex regularization makes the returned predictor insensitive to one training 
+example. This stability gives generalization.
+50 / 50

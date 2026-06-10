@@ -1,0 +1,175 @@
+\documentclass{article}
+
+\usepackage[english]{babel}
+\usepackage[letterpaper,top=2cm,bottom=2cm,left=3cm,right=3cm]{geometry}
+\usepackage{amsmath,amssymb}
+\setlength{\parindent}{0pt}
+
+\title{DSC 190/291: Learning Theory through Formal Proof and Proof Presentation\\Assignment 7}
+\date{UCSD, Spring 2026}
+
+\begin{document}
+\maketitle
+
+\section{Overview}
+
+This assignment has five parts:
+\begin{itemize}
+\item Part A: kernel methods.
+\item Part B: $\ell_1$ Rademacher complexity.
+\item Part C: normalized $\ell_1$ margins and FixedBoost.
+\item Part D: a FixedBoost margin experiment.
+\item Part E: agent skill reflection.
+\end{itemize}
+
+\section{Part A: Kernel Methods}
+
+Let $\mathcal{U}$ be a Hilbert space with inner product $\langle \cdot,\cdot \rangle$ and norm $\|\cdot\|$, and let
+$$
+\phi : \mathcal{X}\to \mathcal{U}
+$$
+be a feature map with kernel
+$$
+K(x,x')=\langle \phi(x),\phi(x')\rangle.
+$$
+For $B>0$, define
+$$
+\mathcal{H}_{K,B}
+=
+\left\{
+x \mapsto \langle w,\phi(x)\rangle
+:
+w\in\mathcal{U},\ \|w\|\le B
+\right\}.
+$$
+For a sample $S=(x_1,\dots,x_n)$ and real-valued function class $\mathcal{F}$, write
+$$
+\widehat{\mathfrak{R}}_S(\mathcal{F})
+=
+\mathbb{E}_\sigma
+\sup_{f\in\mathcal{F}}
+\frac{1}{n}\sum_{i=1}^n \sigma_i f(x_i),
+$$
+where $\sigma_1,\dots,\sigma_n$ are independent uniform signs, and
+$$
+\mathfrak{R}_{\mathcal{D},n}(\mathcal{F})
+=
+\mathbb{E}_{S\sim \mathcal{D}^n}\widehat{\mathfrak{R}}_S(\mathcal{F}).
+$$
+
+\begin{enumerate}
+\item Prove
+$$
+\widehat{\mathfrak{R}}_S(\mathcal{H}_{K,B})
+\le
+\frac{B}{n}\sqrt{\sum_{i=1}^n K(x_i,x_i)},
+$$
+and conclude
+$$
+\mathfrak{R}_{\mathcal{D},n}(\mathcal{H}_{K,B})
+\le
+\frac{B\sqrt{\mathbb{E}[K(X,X)]}}{\sqrt{n}}.
+$$
+
+\item Let
+$$
+J(w)
+=
+\frac{1}{n}\sum_{i=1}^n \operatorname{loss}(\langle w,\phi(x_i)\rangle;y_i)
++
+\lambda \|w\|^2
+$$
+with $\lambda>0$. Prove that any minimizer can be chosen in the form
+$$
+w^\star = \sum_{j=1}^n \alpha_j \phi(x_j),
+\qquad
+\alpha \in \mathbb{R}^n,
+$$
+and rewrite $J$ as an optimization problem over $\alpha$ using only the Gram matrix $K_S$.
+\end{enumerate}
+
+\section{Part B: \texorpdfstring{$\ell_1$}{l1} Rademacher Complexity}
+
+\begin{enumerate}
+\item For a finite class $\mathcal{F}$ of real-valued functions, prove
+$$
+\widehat{\mathfrak{R}}_S(\operatorname{conv}(\mathcal{F}))
+=
+\widehat{\mathfrak{R}}_S(\mathcal{F}).
+$$
+
+\item Let $\phi : \mathcal{X}\to \mathbb{R}^d$ satisfy
+$$
+\|\phi(x)\|_\infty \le R
+$$
+for all $x$, and define
+$$
+\mathcal{H}^1_B
+=
+\left\{
+x \mapsto \langle w,\phi(x)\rangle
+:
+\|w\|_1 \le B
+\right\}.
+$$
+Derive a logarithmic-in-$d$ Rademacher bound for $\mathcal{H}^1_B$.
+
+\item Using the Week 7 uniform-convergence theorem, derive a uniform bound for
+$$
+L^\ell_{\mathcal{D}}(w)-L^\ell_S(w)
+$$
+over $\|w\|_1\le B$ for a $G$-Lipschitz loss $\ell$ bounded in $[0,1]$, and compare it with the Week 4 sparsity/VC bound.
+\end{enumerate}
+
+\section{Part C: \texorpdfstring{Normalized $\ell_1$ Margins and FixedBoost}{Normalized l1 Margins and FixedBoost}}
+
+Let
+$$
+S=((x_1,y_1),\dots,(x_n,y_n)),
+\qquad
+y_i\in\{-1,+1\},
+$$
+and let $\mathcal{G}$ be a finite symmetric base class of binary predictors. For coefficients $w=(w_g)_{g\in\mathcal{G}}$, define
+$$
+f_w(x)=\sum_{g\in\mathcal{G}} w_g g(x),
+\qquad
+\operatorname{margin}_S(w)=\min_i \frac{y_i f_w(x_i)}{\|w\|_1}.
+$$
+
+FixedBoost uses a fixed step size $\eta>0$ and rounds $t=1,\dots,T$:
+\begin{itemize}
+\item choose $g_t$ maximizing the weighted correlation $\sum_i D_{t,i} y_i g_t(x_i)$,
+\item update $w_t=w_{t-1}+\eta e_{g_t}$,
+\item reweight examples by $D_{t+1,i}\propto \exp(-y_i f_{w_t}(x_i))$.
+\end{itemize}
+
+\begin{enumerate}
+\item Prove a population $0/1$ error bound from an empirical normalized margin lower bound $\operatorname{margin}_S(w)\ge \gamma$.
+\item Use the FixedBoost black-box theorem to derive a generalization guarantee for the classifier it returns.
+\item Encode the sample/base class by the matrix
+$$
+A_{ig}=y_i g(x_i)\in\{-1,+1\}^{n\times |\mathcal{G}|}.
+$$
+Use von Neumann's minimax theorem to prove the exact relationship between the best weak-learning edge and the best normalized $\ell_1$ margin.
+\item Explain how this point of view refines the Homework 6 sparse-boosting analysis.
+\end{enumerate}
+
+\section{Part D: FixedBoost Margin Experiment}
+
+The base class is the $2d$ signed coordinate predictors on Boolean inputs $x\in\{-1,+1\}^d$.
+
+\begin{enumerate}
+\item Implement FixedBoost from scratch directly on the sign matrix $A$ with fixed step size.
+\item Formulate and solve the optimal normalized-margin LP, and compare the FixedBoost trajectory with the optimum on at least two instances: one easy and one hard.
+\item Interpret the convergence behavior and compare it with the theorem from Part C.2.
+\end{enumerate}
+
+\section{Part E: Agent Skill Reflection}
+
+\begin{enumerate}
+\item Describe which existing workflow or skill you used.
+\item Describe whether you developed or modified a skill; if not, propose one.
+\item Explain how you checked the math, code, plots, optimization outputs, and final claims.
+\end{enumerate}
+
+\end{document}
